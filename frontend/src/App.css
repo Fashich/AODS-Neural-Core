@@ -1,0 +1,58 @@
+/**
+ * AODS App.css
+ * 
+ * Catatan: Hampir semua styling pakai Tailwind (index.css) + shadcn components.
+ * File ini hanya untuk override/tambahan yang tidak bisa dilakukan via Tailwind.
+ */
+
+/* ── Three.js Canvas ──────────────────────────────────────── */
+.canvas-container canvas {
+  outline: none;
+}
+
+/* ── Shadcn Dialog override untuk dark theme AODS ─────────── */
+[data-radix-popper-content-wrapper] {
+  z-index: 300 !important;
+}
+
+/* ── Gradient text utility (dipakai banyak komponen) ─────── */
+.gradient-text {
+  background: linear-gradient(90deg, #ef4444, #f87171);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Animasi tambahan yang tidak ada di Tailwind default ──── */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* ── HUD pointer-events fix ───────────────────────────────── */
+.hud-interactive {
+  pointer-events: auto;
+}
+
+/* ── Mobile: canvas tetap full screen tapi canvas di belakang konten ── */
+@media (max-width: 640px) {
+  .canvas-container {
+    height: 100%;
+    position: fixed;
+  }
+
+  /* HUD panels hanya tampil sebagian di mobile */
+  .main-content {
+    top: 64px;
+    bottom: 36px;
+  }
+}
