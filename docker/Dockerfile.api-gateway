@@ -1,0 +1,23 @@
+# AODS API Gateway Dockerfile
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install dependencies
+COPY backend/api-gateway/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application
+COPY backend/api-gateway/main.py .
+
+# Environment variables
+ENV PYTHONUNBUFFERED=1
+ENV PORT=9000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import requests; requests.get('http://localhost:9000/health')" || exit 1
+
+EXPOSE 9000
+
+CMD ["python", "main.py"]

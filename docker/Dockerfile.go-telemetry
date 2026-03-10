@@ -1,0 +1,42 @@
+# AODS Go Telemetry Service Dockerfile
+FROM golang:1.21-alpine AS builder
+
+WORKDIR /app
+
+# Install dependencies
+RUN apk add --no-cache git
+
+# Copy go.mod only — go.sum akan di-generate otomatis dari versi yang sudah di-pin di go.mod
+# JANGAN copy go.sum yang lama (checksumnya stale/corrupt)
+# JANGAN pakai go mod tidy (akan upgrade gin ke v1.12 yang butuh Go 1.25)
+COPY backend/go-telemetry/go.mod ./
+
+# Download exact versions yang sudah di-pin di go.mod, lalu generate go.sum yang bersih
+RUN GONOSUMDB=* GOFLAGS=-mod=mod go mod download
+
+# Copy source code
+COPY backend/go-telemetry/main.go .
+
+# Build
+RUN CGO_ENABLED=0 GOOS=linux GONOSUMDB=* GOFLAGS=-mod=mod go build -a -installsuffix cgo -o telemetry-service main.go
+
+# Final stage
+FROM alpine:latest
+
+RUN apk --no-cache add ca-certificates
+
+WORKDIR /root/
+
+# Copy binary from builder
+COPY --from=builder /app/telemetry-service .
+
+# Environment variables
+ENV PORT=9002
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:9002/health || exit 1
+
+EXPOSE 9002
+
+CMD ["./telemetry-service"]

@@ -1,0 +1,40 @@
+# AODS Ruby Automation Service Dockerfile
+FROM ruby:3.2-slim
+
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libpq-dev \
+    redis-tools \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy Gemfile only (skip lockfile)
+COPY backend/ruby-automation/Gemfile ./
+
+# Fix: replace removed gem 'schedule' with 'rufus-scheduler', use non-deprecated config
+RUN bundle config set --local without 'development test' && \
+    sed -i "s/gem ['\"]schedule['\"].*/gem 'rufus-scheduler'/" Gemfile && \
+    bundle install
+
+# Copy application
+COPY backend/ruby-automation/app.rb .
+
+# Fix app.rb: replace require 'schedule' -> require 'rufus-scheduler'
+RUN sed -i "s/require 'schedule'/require 'rufus-scheduler'/" app.rb && \
+    sed -i 's/require "schedule"/require "rufus-scheduler"/' app.rb
+
+# Environment variables
+ENV RACK_ENV=production
+ENV PORT=9007
+ENV REDIS_URL=redis://redis:6379/0
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:9007/health || exit 1
+
+EXPOSE 9007
+
+CMD ["ruby", "app.rb"]

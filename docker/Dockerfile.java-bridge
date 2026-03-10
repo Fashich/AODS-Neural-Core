@@ -1,0 +1,32 @@
+# AODS Java Bridge Service Dockerfile
+FROM eclipse-temurin:21-jdk-alpine AS build
+
+WORKDIR /app
+
+# Copy Maven files
+COPY backend/java-bridge/pom.xml .
+COPY backend/java-bridge/src ./src
+
+# Build
+RUN apk add --no-cache maven && \
+    mvn clean package -DskipTests
+
+# Runtime stage
+FROM eclipse-temurin:21-jre-alpine
+
+WORKDIR /app
+
+# Copy JAR
+COPY --from=build /app/target/*.jar app.jar
+
+# Environment variables
+ENV SERVER_PORT=9005
+ENV SPRING_PROFILES_ACTIVE=production
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:9005/api/health || exit 1
+
+EXPOSE 9005
+
+ENTRYPOINT ["java", "-jar", "app.jar"]
