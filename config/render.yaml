@@ -1,14 +1,13 @@
 # AODS - Render Deployment Blueprint
 # Free tier compatible
-# Ganti YOUR_GITHUB_USERNAME dengan username GitHub kamu
+# Ganti Fashich dengan username GitHub kamu
 
 services:
   # ── API Gateway (PRIORITAS UTAMA) ──────────────────────────────
   - type: web
     name: aods-api-gateway
     runtime: docker
-    repo: https://github.com/YOUR_GITHUB_USERNAME/AODS-Neural-Core
-    branch: main
+    repo: https://github.com/Fashich/AODS-Neural-Core
     dockerfilePath: ./docker/Dockerfile.api-gateway
     dockerContext: .
     plan: free
@@ -31,8 +30,7 @@ services:
   - type: web
     name: aods-python-ai
     runtime: docker
-    repo: https://github.com/YOUR_GITHUB_USERNAME/AODS-Neural-Core
-    branch: main
+    repo: https://github.com/Fashich/AODS-Neural-Core
     dockerfilePath: ./docker/Dockerfile.python-ai
     dockerContext: .
     plan: free
@@ -47,8 +45,7 @@ services:
   - type: web
     name: aods-go-telemetry
     runtime: docker
-    repo: https://github.com/YOUR_GITHUB_USERNAME/AODS-Neural-Core
-    branch: main
+    repo: https://github.com/Fashich/AODS-Neural-Core
     dockerfilePath: ./docker/Dockerfile.go-telemetry
     dockerContext: .
     plan: free
@@ -63,8 +60,7 @@ services:
   - type: web
     name: aods-cpp-hpc
     runtime: docker
-    repo: https://github.com/YOUR_GITHUB_USERNAME/AODS-Neural-Core
-    branch: main
+    repo: https://github.com/Fashich/AODS-Neural-Core
     dockerfilePath: ./docker/Dockerfile.cpp-hpc
     dockerContext: .
     plan: free
@@ -77,8 +73,7 @@ services:
   - type: web
     name: aods-csharp-enterprise
     runtime: docker
-    repo: https://github.com/YOUR_GITHUB_USERNAME/AODS-Neural-Core
-    branch: main
+    repo: https://github.com/Fashich/AODS-Neural-Core
     dockerfilePath: ./docker/Dockerfile.csharp-enterprise
     dockerContext: .
     plan: free
@@ -93,8 +88,7 @@ services:
   - type: web
     name: aods-java-bridge
     runtime: docker
-    repo: https://github.com/YOUR_GITHUB_USERNAME/AODS-Neural-Core
-    branch: main
+    repo: https://github.com/Fashich/AODS-Neural-Core
     dockerfilePath: ./docker/Dockerfile.java-bridge
     dockerContext: .
     plan: free
@@ -109,8 +103,7 @@ services:
   - type: web
     name: aods-php-connector
     runtime: docker
-    repo: https://github.com/YOUR_GITHUB_USERNAME/AODS-Neural-Core
-    branch: main
+    repo: https://github.com/Fashich/AODS-Neural-Core
     dockerfilePath: ./docker/Dockerfile.php-connector
     dockerContext: .
     plan: free
@@ -120,8 +113,7 @@ services:
   - type: web
     name: aods-ruby-automation
     runtime: docker
-    repo: https://github.com/YOUR_GITHUB_USERNAME/AODS-Neural-Core
-    branch: main
+    repo: https://github.com/Fashich/AODS-Neural-Core
     dockerfilePath: ./docker/Dockerfile.ruby-automation
     dockerContext: .
     plan: free
