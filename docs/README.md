@@ -26,7 +26,7 @@ AODS (Autonomous Orchestration of Digital Systems) is a groundbreaking enterpris
 
 ## Architecture
 
-```mermaid
+```txt
 ┌─────────────────────────────────────────────────────────────────┐
 │                        AODS NEURAL CORE                          │
 ├─────────────────────────────────────────────────────────────────┤
@@ -91,6 +91,7 @@ AODS uses **Neon.tech PostgreSQL** with 8 logical schemas:
 
 Or use the one-liner PowerShell:
 ```powershell
+
 psql $env:DATABASE_URL -f database/neon_init.sql
 ```
 
@@ -110,9 +111,11 @@ psql $env:DATABASE_URL -f database/neon_init.sql
 1. Go to [Neon.tech](https://neon.tech) and create an account
 2. Create a new project named `aods-neural-core`
 3. Run the initialization script:
+
    ```bash
    psql <your-neon-connection-string> -f database/neon_init.sql
    ```
+
 4. Copy the connection string for later use
 
 ### Step 2: Backend Deployment (Render)
@@ -206,11 +209,13 @@ python main.py
 ## API Documentation
 
 ### Health Check
+
 ```bash
 GET /health
 ```
 
 ### AI Predictions
+
 ```bash
 POST /api/ai/predict/scaling
 {
