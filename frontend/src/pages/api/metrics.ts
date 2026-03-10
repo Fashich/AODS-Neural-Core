@@ -38,7 +38,6 @@ export async function getMetrics(): Promise<MetricsData> {
   } catch (error) {
     console.error('Error fetching metrics:', error);
     return { 
-      error: 'Failed to fetch metrics',
       fps: 0,
       latency: 0,
       activeUsers: 0,

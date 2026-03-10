@@ -3,7 +3,6 @@
  * Main Application Component
  *
  * The Holographic Enterprise Metaverse
- * Mayar Vibecoding Competition 2026
  */
 
 import { useState, useEffect, Suspense, lazy } from 'react';
@@ -224,7 +223,7 @@ const MainAppContent = ({
         {/* HUD Overlay */}
         <HUD
           systemStatus={finalSystemStatus}
-          metrics={{}}
+          metrics={{ sessionDuration: 0, actionsCount: 0, errorsCount: 0 }}
           user={user}
         />
 

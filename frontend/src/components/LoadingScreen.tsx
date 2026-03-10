@@ -384,7 +384,7 @@ export default function LoadingScreen({ mini = false }: LoadingScreenProps) {
           marginTop: 20, fontSize: 10,
           color: '#3a1010', fontFamily: 'monospace',
         }}>
-          Mayar Vibecoding Competition 2026 · v1.0.0
+          AODS 2026 · v1.0.0
         </p>
       </div>
     </div>

@@ -204,7 +204,9 @@ const mockUserProfile: UserProfile = {
 export function ProfileDropdown({ className }: ProfileDropdownProps) {
   const [theme, setTheme] = useState<string>("dark");
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { disconnect, user } = useAuth();
+  const address = user?.walletAddress ?? null;
+  const balance = user ? '0.000' : null;
   const [isOpen, setIsOpen] = useState(false);
   const [activeDialog, setActiveDialog] = useState<string | null>(null);
   const [profile, setProfile] = useState<UserProfile>(mockUserProfile);
@@ -237,8 +239,7 @@ export function ProfileDropdown({ className }: ProfileDropdownProps) {
   const [uploadProgress, setUploadProgress] = useState(0);
 
   const handleLogout = async () => {
-    await disconnect();
-    await logout();
+    disconnect();
     navigate("/login");
   };
 

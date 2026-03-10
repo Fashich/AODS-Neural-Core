@@ -2,14 +2,14 @@
 
 **The Holographic Enterprise Metaverse**
 
-[![Mayar Vibecoding 2026](https://img.shields.io/badge/Mayar-Vibecoding%202026-blue)](https://mayar.id/vibe2026)
+[![AODS 2026](https://img.shields.io/badge/AODS%202026-blue)](https://mayar.id/vibe2026)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ---
 
 ## Overview
 
-AODS (Autonomous Orchestration of Digital Systems) is a groundbreaking enterprise metaverse platform that combines 9 programming languages, immersive 3D visualization, AI-driven automation, and Web4 decentralized identity. Built for the Mayar Vibecoding Competition 2026, AODS represents the future of digital infrastructure management.
+AODS (Autonomous Orchestration of Digital Systems) is a groundbreaking enterprise metaverse platform that combines 9 programming languages, immersive 3D visualization, AI-driven automation, and Web4 decentralized identity. AODS represents the future of digital infrastructure management.
 
 ### Key Features
 
@@ -26,7 +26,7 @@ AODS (Autonomous Orchestration of Digital Systems) is a groundbreaking enterpris
 
 ## Architecture
 
-```
+```mermaid
 ┌─────────────────────────────────────────────────────────────────┐
 │                        AODS NEURAL CORE                          │
 ├─────────────────────────────────────────────────────────────────┤
@@ -341,6 +341,6 @@ MIT License - See [LICENSE](LICENSE) for details.
 
 ## Team
 
-Built with passion for the Mayar Vibecoding Competition 2026.
+Built with passion for the Mayar Competition 2026.
 
 **AODS - Orchestrating the Future of Digital Systems**

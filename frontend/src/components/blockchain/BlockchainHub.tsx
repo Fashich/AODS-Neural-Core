@@ -1,7 +1,6 @@
 /**
  * BlockchainHub - 9 Module Blockchain Integration Dashboard
  * AODS - Autonomous Orchestration of Digital Systems
- * Mayar Vibecoding Competition 2026
  */
 
 import { useState } from 'react';
@@ -11,7 +10,7 @@ import {
   Gamepad2, Vote, Landmark, X, ExternalLink, Copy, Check,
   TrendingUp, Shield, Zap, Globe, Clock, ChevronRight,
   Activity, BarChart3, Lock, AlertCircle, CheckCircle2,
-  ArrowUpRight, ArrowDownLeft, RefreshCw, Wallet
+  ArrowUpRight, ArrowDownLeft, RefreshCw, Wallet, Trophy
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';

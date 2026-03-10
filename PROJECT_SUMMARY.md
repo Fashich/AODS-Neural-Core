@@ -2,8 +2,6 @@
 
 ## Autonomous Orchestration of Digital Systems
 
-### Mayar Vibecoding Competition 2026
-
 ---
 
 ## Executive Summary
@@ -306,8 +304,6 @@ chmod +x scripts/test-all.sh
 ---
 
 ## Credits
-
-Built for **Mayar Vibecoding Competition 2026**
 
 **Technologies Used**:
 

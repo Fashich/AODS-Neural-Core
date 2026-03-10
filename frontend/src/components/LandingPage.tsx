@@ -1,7 +1,6 @@
 /**
  * LandingPage - Multi-section 3D Holographic Landing
  * AODS - Autonomous Orchestration of Digital Systems
- * Mayar Vibecoding Competition 2026
  */
 
 import { useState, useRef, useEffect } from 'react';
@@ -11,11 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as THREE from 'three';
 
-declare global {
-  interface Window {
-    ethereum?: { request: (args: { method: string }) => Promise<string[]> };
-  }
-}
+// ethereum interface declared in src/hooks/useAuth.ts
 
 // ─── Hacker Text System ───────────────────────────────────────────
 
