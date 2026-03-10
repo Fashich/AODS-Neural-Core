@@ -1,0 +1,47 @@
+# AODS PHP Connector Service Dockerfile
+FROM php:8.2-apache
+
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    libcurl4-openssl-dev \
+    libssl-dev \
+    zip \
+    unzip \
+    git \
+    && docker-php-ext-install curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+WORKDIR /var/www/html
+
+# Copy composer.json
+COPY backend/php-connector/composer.json ./
+
+# Install dependencies
+RUN composer update --no-dev --optimize-autoloader --no-interaction --no-progress
+
+# Copy application
+COPY backend/php-connector/index.php .
+
+# Buat .htaccess agar Slim bisa handle semua route
+RUN printf 'RewriteEngine On\nRewriteCond %%{REQUEST_FILENAME} !-f\nRewriteCond %%{REQUEST_FILENAME} !-d\nRewriteRule ^ index.php [QSA,L]\n' > /var/www/html/.htaccess
+
+# Enable Apache mod_rewrite
+RUN a2enmod rewrite
+
+# Configure Apache - AllowOverride All agar .htaccess dibaca
+RUN printf '<Directory /var/www/html>\n\tOptions Indexes FollowSymLinks\n\tAllowOverride All\n\tRequire all granted\n</Directory>\n' \
+    > /etc/apache2/conf-available/app.conf && a2enconf app
+
+# Configure Apache to listen on port 9006
+RUN sed -i 's/Listen 80/Listen 9006/' /etc/apache2/ports.conf && \
+    sed -i 's/<VirtualHost \*:80>/<VirtualHost *:9006>/' /etc/apache2/sites-enabled/000-default.conf
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:9006/health || exit 1
+
+EXPOSE 9006
+
+CMD ["apache2-foreground"]
