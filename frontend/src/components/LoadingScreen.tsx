@@ -1,6 +1,7 @@
 /**
  * Loading Screen - AODS Neural Core
  * Full MVP loading animation — tema merah, no Tailwind conflict
+ * LOGO: /images/logo.png (atomic/geodesic sphere with orbit rings)
  */
 
 import { useEffect, useState, useRef } from 'react';
@@ -9,7 +10,6 @@ interface LoadingScreenProps {
   mini?: boolean;
 }
 
-// Pre-computed shooting star data (random seed=42 at build time)
 const SHOOTING_STARS = [
   { x:60.7, y:2.3,  dx:181, dy:-33, tail:148, delay:8.12,  dur:3.01, size:1, col:'#fca5a588' },
   { x:40.1, y:2.7,  dx:168, dy:1,   tail:63,  delay:2.39,  dur:2.57, size:2, col:'#ef4444cc' },
@@ -61,6 +61,7 @@ export default function LoadingScreen({ mini = false }: LoadingScreenProps) {
   const [phase, setPhase] = useState(0);
   const [glitch, setGlitch] = useState(false);
   const [logs, setLogs] = useState<string[]>([]);
+  const [logoError, setLogoError] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const logLines = [
@@ -91,14 +92,11 @@ export default function LoadingScreen({ mini = false }: LoadingScreenProps) {
         const step = [...loadingSteps].reverse().find(s => next >= s.at);
         if (step) setLoadingText(step.text);
         setPhase(Math.floor(next / 25));
-
-        // Add log line at milestones
         const logIdx = Math.floor((next / 100) * logLines.length);
         setLogs(l => {
           const deduped = Array.from(new Set([...l, logLines[logIdx]].filter(Boolean)));
           return deduped.slice(-5);
         });
-
         if (next >= 100 && timerRef.current) clearInterval(timerRef.current);
         return next;
       });
@@ -141,6 +139,10 @@ export default function LoadingScreen({ mini = false }: LoadingScreenProps) {
       85%  { opacity: 0.85; }
       100% { opacity: 0;   transform: translate(var(--sdx, 110vw), var(--sdy, 0px)); }
     }
+    @keyframes logopulse {
+      0%,100% { filter: drop-shadow(0 0 12px #ef4444cc) brightness(1); }
+      50%     { filter: drop-shadow(0 0 28px #ef4444ff) brightness(1.2); }
+    }
   `;
 
   if (mini) {
@@ -178,20 +180,20 @@ export default function LoadingScreen({ mini = false }: LoadingScreenProps) {
     }}>
       <style>{css}</style>
 
-      {/* Shooting stars — each flies in from random position at random time */}
+      {/* Shooting stars */}
       {SHOOTING_STARS.map((s, i) => (
         <div key={i} style={{
           position: 'absolute',
           left: `${s.x}%`, top: `${s.y}%`,
           pointerEvents: 'none', zIndex: 0,
-          opacity: 0,                          /* hidden until delay fires */
+          opacity: 0,
           animationName: 'star-move',
           animationDuration: `${s.dur}s`,
           animationDelay: `${s.delay}s`,
           animationTimingFunction: 'ease-in',
           animationIterationCount: 'infinite',
-          animationFillMode: 'backwards',      /* keep opacity:0 during delay */
-          '--sdx': `calc(100vw - ${s.x}%)`,   /* always travel to right edge */
+          animationFillMode: 'backwards',
+          '--sdx': `calc(100vw - ${s.x}%)`,
           '--sdy': `${s.dy}px`,
         } as React.CSSProperties}>
           <div style={{
@@ -231,8 +233,6 @@ export default function LoadingScreen({ mini = false }: LoadingScreenProps) {
         animationIterationCount: 'infinite', pointerEvents: 'none',
       }} />
 
-
-
       {/* ── Main card ── */}
       <div style={{
         position: 'relative', zIndex: 10,
@@ -242,7 +242,7 @@ export default function LoadingScreen({ mini = false }: LoadingScreenProps) {
         animationIterationCount: 'infinite',
       }}>
 
-        {/* Spinner */}
+        {/* Spinner with AODS logo in center */}
         <div style={{ position: 'relative', width: 144, height: 144, margin: '0 auto 40px' }}>
           <div style={SPIN_STYLE(144, 2, '#ef4444', 3.2, false, 0.9)} />
           <div style={SPIN_STYLE(116, 2, '#dc2626', 2.1, true, 0.7)} />
@@ -250,20 +250,40 @@ export default function LoadingScreen({ mini = false }: LoadingScreenProps) {
           <div style={SPIN_STYLE(60, 2, '#fca5a5', 1.6, true, 0.4)} />
           <div style={SPIN_STYLE(36, 1, '#ef444480', 1.1, false, 0.3)} />
 
-          {/* Center icon */}
+          {/* ── CENTER: AODS logo.png ── */}
           <div style={{
             position: 'absolute', top: '50%', left: '50%',
             transform: 'translate(-50%, -50%)',
-            width: 42, height: 42,
-            background: 'linear-gradient(135deg, #7f1d1d, #ef4444)',
-            borderRadius: 10,
+            width: 52, height: 52,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 0 20px #ef4444aa, 0 0 40px #ef444444',
+            animationName: 'logopulse',
+            animationDuration: '2.4s',
+            animationTimingFunction: 'ease-in-out',
+            animationIterationCount: 'infinite',
           }}>
-            <svg width="22" height="22" fill="none" stroke="white" strokeWidth="1.5" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round"
-                d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" />
-            </svg>
+            {!logoError ? (
+              <img
+                src="/images/logo.png"
+                alt="AODS"
+                onError={() => setLogoError(true)}
+                style={{
+                  width: 52, height: 52,
+                  objectFit: 'contain',
+                  filter: 'drop-shadow(0 0 14px #ef4444cc)',
+                }}
+              />
+            ) : (
+              /* Fallback: glowing "A" letter */
+              <div style={{
+                width: 44, height: 44,
+                background: 'linear-gradient(135deg, #7f1d1d, #ef4444)',
+                borderRadius: 10,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 0 20px #ef4444aa',
+                fontFamily: 'monospace', fontWeight: 900, fontSize: 22,
+                color: '#fff', letterSpacing: -1,
+              }}>A</div>
+            )}
           </div>
         </div>
 
@@ -384,7 +404,7 @@ export default function LoadingScreen({ mini = false }: LoadingScreenProps) {
           marginTop: 20, fontSize: 10,
           color: '#3a1010', fontFamily: 'monospace',
         }}>
-          AODS 2026 · v1.0.0
+          Mayar Vibecoding Competition 2026 · v1.0.0
         </p>
       </div>
     </div>
