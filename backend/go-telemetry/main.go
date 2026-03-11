@@ -516,6 +516,7 @@ func main() {
 	
 	// Routes
 	router.GET("/health", healthHandler)
+	router.HEAD("/health", healthHandler)
 	router.POST("/telemetry", ingestTelemetryHandler)
 	router.POST("/metrics", ingestMetricsHandler)
 	router.POST("/events", ingestEventsHandler)

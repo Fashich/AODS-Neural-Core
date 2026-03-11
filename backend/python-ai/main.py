@@ -157,6 +157,7 @@ app.add_middleware(
 
 # Health check endpoint
 @app.get("/health")
+@app.head("/health")
 async def health_check():
     """Service health check"""
     return {

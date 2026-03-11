@@ -72,6 +72,7 @@ public class EnterpriseController : ControllerBase
     }
     
     [HttpGet("health")]
+    [HttpHead("health")]
     public IActionResult Health()
     {
         return Ok(new
