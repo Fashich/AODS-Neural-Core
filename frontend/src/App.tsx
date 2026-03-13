@@ -3,6 +3,7 @@
  * Main Application Component
  *
  * The Holographic Enterprise Metaverse
+ * Mayar Vibecoding Competition 2026
  */
 
 import { useState, useEffect, Suspense, lazy } from 'react';
@@ -19,6 +20,8 @@ import Navigation from './components/Navigation';
 import LandingPage from './components/LandingPage';
 import LoginPage from './components/LoginPage';
 import SignupPage from './components/SignupPage';
+import TermsPage from './components/TermsPage';
+import PrivacyPage from './components/PrivacyPage';
 
 // Lazy load heavy components for performance
 const MetaverseScene = lazy(() => import('./components/three/MetaverseScene'));
@@ -101,6 +104,8 @@ function App() {
         />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
         <Route
           path="/profile"
           element={
@@ -223,7 +228,7 @@ const MainAppContent = ({
         {/* HUD Overlay */}
         <HUD
           systemStatus={finalSystemStatus}
-          metrics={{ sessionDuration: 0, actionsCount: 0, errorsCount: 0 }}
+          metrics={{}}
           user={user}
         />
 

@@ -102,8 +102,8 @@ const LogoCreateAnimation = ({ onHover }: { onHover: () => void }) => {
       key="logo-create"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0, scale: 0.85 }}
-      transition={{ duration: 0.5 }}
+      exit={{ opacity: 0, scale: 0.9, y: -10 }}
+      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
       style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '32px 0 24px' }}
       onMouseEnter={onHover}
     >
@@ -503,6 +503,7 @@ const SignupPage = () => {
         ref={cardRef}
         onMouseMove={handleMouseMove}
         onMouseLeave={() => setTilt({ x: 0, y: 0 })}
+        layout
         style={{
           position: 'relative', zIndex: 10,
           width: '100%', maxWidth: 400, margin: '0 16px',
@@ -515,11 +516,11 @@ const SignupPage = () => {
         <div style={{ position: 'absolute', inset: -1, borderRadius: 22, background: 'linear-gradient(135deg,rgba(248,113,113,0.3),rgba(220,38,38,0.04),rgba(248,113,113,0.2))', pointerEvents: 'none' }} />
 
         {/* Glass card */}
-        <div style={{ borderRadius: 20, overflow: 'hidden', background: 'rgba(6,1,1,0.88)', backdropFilter: 'blur(36px)', border: '1px solid rgba(248,113,113,0.18)', boxShadow: '0 28px 90px rgba(0,0,0,0.75)' }}>
+        <motion.div layout transition={{ layout: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } }} style={{ borderRadius: 20, overflow: 'hidden', background: 'rgba(6,1,1,0.88)', backdropFilter: 'blur(36px)', border: '1px solid rgba(248,113,113,0.18)', boxShadow: '0 28px 90px rgba(0,0,0,0.75)' }}>
           <div style={{ height: 2, background: 'linear-gradient(90deg,transparent,rgba(248,113,113,0.9),rgba(252,165,165,0.6),transparent)' }} />
 
           <div style={{ padding: '0 28px' }}>
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="wait" initial={false}>
               {!isFormActive ? (
                 <LogoCreateAnimation key="create-scan" onHover={() => setIsFormActive(true)} />
               ) : (
@@ -540,7 +541,7 @@ const SignupPage = () => {
           </div>
 
           <div style={{ height: 1, background: 'linear-gradient(90deg,transparent,rgba(248,113,113,0.4),transparent)' }} />
-        </div>
+        </motion.div>
 
         {/* Corner HUD */}
         {[{ pos: { top: -6, left: -6 }, r: 0 }, { pos: { top: -6, right: -6 }, r: 90 }, { pos: { bottom: -6, left: -6 }, r: -90 }, { pos: { bottom: -6, right: -6 }, r: 180 }].map(({ pos, r }, i) => (

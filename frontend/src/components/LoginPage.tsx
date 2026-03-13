@@ -103,8 +103,8 @@ const LogoScanAnimation = ({ onHover }: { onHover: () => void }) => {
       key="logo-scan"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0, scale: 0.85 }}
-      transition={{ duration: 0.5 }}
+      exit={{ opacity: 0, scale: 0.9, y: -10 }}
+      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
       style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '32px 0 24px' }}
       onMouseEnter={onHover}
     >
@@ -650,6 +650,7 @@ export default function LoginPage() {
         ref={cardRef}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
+        layout
         style={{
           position: 'relative', zIndex: 10,
           width: '100%', maxWidth: 400,
@@ -667,7 +668,7 @@ export default function LoginPage() {
         }} />
 
         {/* Main card glass */}
-        <div style={{
+        <motion.div layout transition={{ layout: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } }} style={{
           borderRadius: 20, overflow: 'hidden',
           background: 'rgba(6,1,1,0.88)',
           backdropFilter: 'blur(36px)',
@@ -679,7 +680,7 @@ export default function LoginPage() {
 
           <div style={{ padding: '0 28px' }}>
             {/* Animated content: logo scan OR form */}
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="wait" initial={false}>
               {!isFormActive ? (
                 <LogoScanAnimation key="scan" onHover={() => setIsFormActive(true)} />
               ) : (
@@ -702,7 +703,7 @@ export default function LoginPage() {
 
           {/* Bottom accent bar */}
           <div style={{ height: 1, background: 'linear-gradient(90deg,transparent,rgba(239,68,68,0.4),transparent)' }} />
-        </div>
+        </motion.div>
 
         {/* Corner HUD brackets (outside card) */}
         {[

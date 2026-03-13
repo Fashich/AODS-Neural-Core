@@ -1,6 +1,7 @@
 /**
  * LandingPage - Multi-section 3D Holographic Landing
  * AODS - Autonomous Orchestration of Digital Systems
+ * Mayar Vibecoding Competition 2026
  */
 
 import { useState, useRef, useEffect } from 'react';
@@ -9,8 +10,13 @@ import { OrbitControls, Stars, Float, MeshDistortMaterial } from '@react-three/d
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as THREE from 'three';
+import { LiveSystemStatus } from './LiveSystemStatus';
 
-// ethereum interface declared in src/hooks/useAuth.ts
+declare global {
+  interface Window {
+    ethereum?: { request: (args: { method: string }) => Promise<string[]> };
+  }
+}
 
 // ─── Hacker Text System ───────────────────────────────────────────
 
@@ -342,7 +348,7 @@ const TrailerModal = ({ onClose }: { onClose: () => void }) => {
 const HeroSection = ({ onTrailer }: { onTrailer: () => void }) => {
   const navigate = useNavigate();
   return (
-    <section className="min-h-screen flex flex-col items-center justify-center px-4 text-center py-24 relative" style={{ pointerEvents: 'none' }}>
+    <section className="min-h-screen flex flex-col items-center justify-center px-4 text-center py-24 relative" style={{ pointerEvents: 'none', touchAction: 'pan-y' }}>
       <motion.div initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }} style={{ pointerEvents: 'auto' }} className="mb-6">
         <span className="inline-block text-xs font-semibold tracking-widest uppercase backdrop-blur-sm"
           style={{ background: 'rgba(30,5,5,0.7)', border: '1px solid rgba(239,68,68,0.4)', color: '#fca5a5', padding: '8px 36px', borderRadius: 999, letterSpacing: '0.18em', boxShadow: '0 0 20px rgba(239,68,68,0.1)' }}>
@@ -616,7 +622,7 @@ export default function LandingPage() {
   return (
     <div
       className="w-full min-h-screen relative"
-      style={{ background: 'radial-gradient(ellipse at 30% 30%,#1a0505 0%,#0a0000 50%,#000 100%)', overflowY: 'auto', overflowX: 'hidden' }}
+      style={{ background: 'radial-gradient(ellipse at 30% 30%,#1a0505 0%,#0a0000 50%,#000 100%)', overflowX: 'hidden' }}
     >
       {/* ── Fixed 3D Background — pointer-events:none so scroll works ── */}
       <div className="fixed inset-0" style={{ zIndex: 0, pointerEvents: 'none' }}>
@@ -665,6 +671,7 @@ export default function LandingPage() {
           >
             <HeroSection onTrailer={() => setShowTrailer(true)} />
             <StatsSection />
+            <LiveSystemStatus />
             <TechStackSection />
             <BlockchainSection />
             <FeaturesSection />
