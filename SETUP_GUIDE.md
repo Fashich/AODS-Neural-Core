@@ -7,7 +7,7 @@
 ## 📋 Daftar Port (Sudah Diganti!)
 
 | Service | Port Lama | Port Baru | Keterangan |
-|---------|-----------|-----------|------------|
+| ------- | --------- | --------- | ---------- |
 | API Gateway | 8000 | **9000** | Entry point utama |
 | Python AI | 8001 | **9001** | Machine Learning |
 | Go Telemetry | 8002 | **9002** | Monitoring |
@@ -25,7 +25,7 @@
 
 ### 1.1 Buat Akun Neon.tech
 
-1. Buka https://neon.tech
+1. Buka <https://neon.tech>
 2. Sign up dengan GitHub atau email
 3. Buat project baru: `aods-neural-core`
 
@@ -60,6 +60,7 @@ npm install
 ### 2.2 Environment Variables
 
 Buat file `.env` di folder `frontend`:
+
 ```env
 VITE_API_URL=http://localhost:9000
 ```
@@ -87,11 +88,12 @@ pnpm run build
 
 ### 3.1 Install Docker Desktop
 
-Download dari: https://www.docker.com/products/docker-desktop
+Download dari: <https://www.docker.com/products/docker-desktop>
 
 ### 3.2 Environment Variables
 
 Buat file `.env` di root project:
+
 ```env
 DATABASE_URL=postgresql://username:password@hostname.neon.tech/aods_neural_core?sslmode=require
 MAYAR_API_KEY=your_mayar_sandbox_key
@@ -144,7 +146,7 @@ cd scripts
 
 ### 4.2 Test Manual (Browser/Postman)
 
-```
+```http
 GET http://localhost:9000/health
 GET http://localhost:9000/api/orchestration
 GET http://localhost:9000/api/plans
@@ -172,9 +174,9 @@ Invoke-RestMethod -Uri "http://localhost:9000/api/payments/create" -Method POST 
 
 ### 5.1 Frontend (Vercel)
 
-#### Setup:
+#### Setup
 
-1. Buka https://vercel.com
+1. Buka <https://vercel.com>
 2. Import GitHub repository
 3. Configure:
    - Framework: `Vite`
@@ -183,13 +185,14 @@ Invoke-RestMethod -Uri "http://localhost:9000/api/payments/create" -Method POST 
    - Output Directory: `dist`
 
 4. Environment Variables:
-   ```
+
+   ```env
    VITE_API_URL=https://aods-api-gateway.onrender.com
    ```
 
 5. Deploy!
 
-#### Atau Deploy via CLI:
+#### Atau Deploy via CLI
 
 ```powershell
 cd frontend
@@ -201,22 +204,22 @@ vercel --prod
 
 ### 5.2 Backend (Render)
 
-#### Setup:
+#### Konfigurasi Render
 
-1. Buka https://render.com
+1. Buka <https://render.com>
 2. Connect GitHub repository
 3. Pilih "Blueprint"
 4. Pilih file `config/render.yaml`
 
-#### Environment Variables di Render:
+#### Environment Variables di Render
 
-```
+```env
 DATABASE_URL=<your-neon-connection-string>
 MAYAR_API_KEY=<your-mayar-key>
 MAYAR_SANDBOX=true
 ```
 
-#### Deploy:
+#### Deploy
 
 Klik "Apply" dan Render akan deploy semua 8 services otomatis!
 
@@ -338,7 +341,7 @@ pnpm store prune
 
 ## 📁 Struktur Folder (Setelah Pindah ke Root)
 
-```
+```text
 /mnt/okcomputer/output/
 ├── frontend/              # React + Three.js + AFrame.js
 │   ├── src/
@@ -414,6 +417,7 @@ docker ps
 3. Lihat README: `docs/README.md`
 
 ---
+
 ## 📝 Catatan
 
 1. Jangan lupa untuk mengatur environment variable di file `.env`

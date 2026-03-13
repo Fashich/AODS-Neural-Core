@@ -1,6 +1,6 @@
 /**
  * LandingPage — AODS Neural Core
- * Full scroll-driven 3D experience
+ * Full scroll-driven 3D experience — REVISED
  */
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -9,7 +9,269 @@ import { OrbitControls, Stars, Float, MeshDistortMaterial } from '@react-three/d
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, useInView, useScroll, useTransform } from 'framer-motion';
 import * as THREE from 'three';
-import { LiveSystemStatus } from './LiveSystemStatus';
+
+// ── Language definitions ───────────────────────────────────
+
+type LangKey = 'default' | 'id' | 'jv' | 'su' | 'bk' | 'ac' | 'en' | 'ja' | 'ko' | 'zh' | 'ru' | 'ar';
+
+const LANGUAGES: { key: LangKey; label: string; native: string; flag: string }[] = [
+  { key: 'default', label: 'Default',   native: 'Default',         flag: '🌐' },
+  { key: 'id',      label: 'Indonesia', native: 'Bahasa Indonesia', flag: '🇮🇩' },
+  { key: 'jv',      label: 'Jawa',      native: 'Basa Jawa',       flag: '\u2615' },
+  { key: 'su',      label: 'Sunda',     native: 'Basa Sunda',      flag: '🌿' },
+  { key: 'bk',      label: 'Batak',     native: 'Hata Batak',      flag: '🏔\uFE0F' },
+  { key: 'ac',      label: 'Aceh',      native: 'Bahsa Aceh',      flag: '🌊' },
+  { key: 'en',      label: 'English',   native: 'English',         flag: '🇺🇸' },
+  { key: 'ja',      label: 'Japan',     native: '\u65E5\u672C\u8A9E',           flag: '🇯🇵' },
+  { key: 'ko',      label: 'Korea',     native: '\uD55C\uAD6D\uC5B4',           flag: '🇰🇷' },
+  { key: 'zh',      label: 'China',     native: '\u4E2D\u6587',               flag: '🇨🇳' },
+  { key: 'ru',      label: 'Rusia',     native: '\u0420\u0443\u0441\u0441\u043A\u0438\u0439',          flag: '🇷🇺' },
+  { key: 'ar',      label: 'Arab',      native: '\u0627\u0644\u0639\u0631\u0628\u064A\u0629',           flag: '🇸🇦' },
+];
+
+type LangDict = {
+  badge: string; tagline: string; sub: string;
+  watchTrailer: string; exploreUniverse: string; scroll: string;
+  sectionMetrics: string; platformStats: string;
+  sectionArch: string; archTitle: string;
+  sectionInfra: string; infraTitle: string; infraSub: string;
+  sectionCapabilities: string; capTitle: string;
+  sectionJoin: string; joinTitle: string; joinSub: string;
+  createAccount: string; signIn: string; pills: string[];
+  footerTagline: string; footerCopyright: string; footerLinks: string[];
+  langTitle: string;
+};
+
+const T: Record<LangKey, LangDict> = {
+  default: {
+    badge: 'A COMPREHENSIVE ENTERPRISE METAVERSE PLATFORM',
+    tagline: 'Autonomous Orchestration of Digital Systems',
+    sub: 'Platform enterprise generasi berikutnya - AI Agent, blockchain, dan visualisasi 3D holografik dalam satu ekosistem terintegrasi.',
+    watchTrailer: 'Watch Trailer', exploreUniverse: 'Explore Universe', scroll: 'SCROLL',
+    sectionMetrics: 'System Metrics', platformStats: 'Platform Statistics',
+    sectionArch: 'Polyglot Architecture', archTitle: '9 Languages, 1 Ecosystem',
+    sectionInfra: 'Live Infrastructure', infraTitle: 'Real-Time Infrastructure',
+    infraSub: 'Monitor microservice health, compliance, dan system uptime secara real-time.',
+    sectionCapabilities: 'Core Capabilities', capTitle: 'Platform Next-Gen',
+    sectionJoin: 'Join AODS', joinTitle: 'Siap Memasuki\nHolographic Metaverse?',
+    joinSub: 'Bergabunglah dengan AODS Neural Core — platform enterprise terdepan yang menggabungkan AI, blockchain, dan visualisasi 3D.',
+    createAccount: 'Create Account', signIn: 'Sign In',
+    pills: ['Free tier available', 'MetaMask supported', 'ISO 27001', '9 Languages', 'Open Source'],
+    footerTagline: 'Platform enterprise generasi berikutnya — AI, blockchain, dan metaverse 3D dalam satu ekosistem.',
+    footerCopyright: '\u00A9 2026 AODS Neural Core \u00B7 Ahmad Fashich Azzuhri Ramadhani \u00B7 All rights reserved.',
+    footerLinks: ['Features', 'Blockchain', 'AI Core', 'Documentation', 'Privacy Policy', 'Terms of Service'],
+    langTitle: 'Choose Language',
+  },
+  id: {
+    badge: 'PLATFORM METAVERSE ENTERPRISE KOMPREHENSIF',
+    tagline: 'Orkestrasi Otonom Sistem Digital',
+    sub: 'Platform enterprise generasi berikutnya \u2014 AI Agent, blockchain, dan visualisasi 3D holografik dalam satu ekosistem terintegrasi.',
+    watchTrailer: 'Tonton Trailer', exploreUniverse: 'Jelajahi Universe', scroll: 'GULIR',
+    sectionMetrics: 'Metrik Sistem', platformStats: 'Statistik Platform',
+    sectionArch: 'Arsitektur Poliglot', archTitle: '9 Bahasa, 1 Ekosistem',
+    sectionInfra: 'Infrastruktur Langsung', infraTitle: 'Infrastruktur Real-Time',
+    infraSub: 'Pantau kesehatan microservice, kepatuhan, dan uptime sistem secara langsung.',
+    sectionCapabilities: 'Kemampuan Inti', capTitle: 'Platform Generasi Baru',
+    sectionJoin: 'Bergabung AODS', joinTitle: 'Siap Memasuki\nMetaverse Holografik?',
+    joinSub: 'Bergabunglah dengan AODS Neural Core \u2014 platform enterprise terdepan yang memadukan AI, blockchain, dan visualisasi 3D.',
+    createAccount: 'Buat Akun', signIn: 'Masuk',
+    pills: ['Tier gratis tersedia', 'MetaMask didukung', 'ISO 27001', '9 Bahasa', 'Open Source'],
+    footerTagline: 'Platform enterprise generasi berikutnya \u2014 AI, blockchain, dan metaverse 3D dalam satu ekosistem.',
+    footerCopyright: '\u00A9 2026 AODS Neural Core \u00B7 Ahmad Fashich Azzuhri Ramadhani \u00B7 Hak cipta dilindungi.',
+    footerLinks: ['Fitur', 'Blockchain', 'AI Core', 'Dokumentasi', 'Kebijakan Privasi', 'Syarat Layanan'],
+    langTitle: 'Pilih Bahasa',
+  },
+  jv: {
+    badge: 'PLATFORM METAVERSE ENTERPRISE KOMPREHENSIF',
+    tagline: 'Orkestrasi Otomatis Sistem Digital',
+    sub: 'Platform enterprise generasi sabanjure \u2014 AI Agent, blockchain, lan visualisasi 3D holografik ing sak ekosistem terintegrasi.',
+    watchTrailer: 'Delok Trailer', exploreUniverse: 'Jelajah Universe', scroll: 'GULUNG',
+    sectionMetrics: 'Metrik Sistem', platformStats: 'Statistik Platform',
+    sectionArch: 'Arsitektur Poliglot', archTitle: '9 Basa, 1 Ekosistem',
+    sectionInfra: 'Infrastruktur Langsung', infraTitle: 'Infrastruktur Real-Time',
+    infraSub: 'Pantau kesehatan microservice, kepatuhan, lan uptime sistem kanthi langsung.',
+    sectionCapabilities: 'Kemampuan Inti', capTitle: 'Platform Generasi Anyar',
+    sectionJoin: 'Gabung AODS', joinTitle: 'Siyap Mlebu\nMetaverse Holografik?',
+    joinSub: 'Gabungo karo AODS Neural Core \u2014 platform enterprise paling maju sing nggabungake AI, blockchain, lan visualisasi 3D.',
+    createAccount: 'Gawe Akun', signIn: 'Mlebu',
+    pills: ['Tier gratis ana', 'MetaMask didhukung', 'ISO 27001', '9 Basa', 'Open Source'],
+    footerTagline: 'Platform enterprise generasi anyar \u2014 AI, blockchain, lan metaverse 3D ing sak ekosistem.',
+    footerCopyright: '\u00A9 2026 AODS Neural Core \u00B7 Ahmad Fashich Azzuhri Ramadhani \u00B7 Hak cipta dilindungi.',
+    footerLinks: ['Fitur', 'Blockchain', 'AI Core', 'Dokumentasi', 'Kabijakan Privasi', 'Syarat Layanan'],
+    langTitle: 'Pilih Basa',
+  },
+  su: {
+    badge: 'PLATFORM METAVERSE ENTERPRISE KOMPREHENSIF',
+    tagline: 'Orkestrasi Otomatis Sistem Digital',
+    sub: 'Platform enterprise generasi salajengna \u2014 AI Agent, blockchain, sareng visualisasi 3D holografik dina hiji ekosistem terintegrasi.',
+    watchTrailer: 'Tingali Trailer', exploreUniverse: 'Jelajah Universe', scroll: 'GULUNG',
+    sectionMetrics: 'Metrik Sistim', platformStats: 'Statistik Platform',
+    sectionArch: 'Arsitektur Poliglot', archTitle: '9 Basa, 1 Ekosistim',
+    sectionInfra: 'Infrastruktur Langsung', infraTitle: 'Infrastruktur Real-Time',
+    infraSub: 'Pantau kaséhatan microservice, kapatuhan, sareng uptime sistim sacara langsung.',
+    sectionCapabilities: 'Kamampuh Inti', capTitle: 'Platform Generasi Énggal',
+    sectionJoin: 'Gabung AODS', joinTitle: 'Siap Asup\nMetaverse Holografik?',
+    joinSub: 'Gabung sareng AODS Neural Core \u2014 platform enterprise pangmajuna anu ngahijikeun AI, blockchain, sareng visualisasi 3D.',
+    createAccount: 'Jieun Akun', signIn: 'Asup',
+    pills: ['Tier gratis aya', 'MetaMask dirojong', 'ISO 27001', '9 Basa', 'Open Source'],
+    footerTagline: 'Platform enterprise generasi énggal \u2014 AI, blockchain, sareng metaverse 3D dina hiji ekosistim.',
+    footerCopyright: '\u00A9 2026 AODS Neural Core \u00B7 Ahmad Fashich Azzuhri Ramadhani \u00B7 Hak cipta dilindingan.',
+    footerLinks: ['Fitur', 'Blockchain', 'AI Core', 'Dokumentasi', 'Kabijakan Privasi', 'Syarat Layanan'],
+    langTitle: 'Pilih Basa',
+  },
+  bk: {
+    badge: 'PLATFORM METAVERSE ENTERPRISE KOMPREHENSIF',
+    tagline: 'Orkestrasion Otomatis Sistem Digital',
+    sub: 'Platform enterprise generasi naposobulung \u2014 AI Agent, blockchain, dohot visualisasi 3D holografik di saada ekosistem na terintegrasi.',
+    watchTrailer: 'Ida Trailer', exploreUniverse: 'Jelajah Universe', scroll: 'GULUNG',
+    sectionMetrics: 'Metrik Sistem', platformStats: 'Statistik Platform',
+    sectionArch: 'Arsitektur Poliglot', archTitle: '9 Hata, 1 Ekosistem',
+    sectionInfra: 'Infrastruktur Langsung', infraTitle: 'Infrastruktur Real-Time',
+    infraSub: 'Pantau roha microservice, patuhan, dohot uptime sistem langsung.',
+    sectionCapabilities: 'Kemampuan Inti', capTitle: 'Platform Generasi Baru',
+    sectionJoin: 'Masuk AODS', joinTitle: 'Siap Tama\nMetaverse Holografik?',
+    joinSub: 'Masuk ma hamu tu AODS Neural Core \u2014 platform enterprise na ulubalang na manoktahi AI, blockchain, dohot visualisasi 3D.',
+    createAccount: 'Patidaon Akun', signIn: 'Masuk',
+    pills: ['Tier gratis adong', 'MetaMask disakkapkon', 'ISO 27001', '9 Hata', 'Open Source'],
+    footerTagline: 'Platform enterprise generasi naposobulung \u2014 AI, blockchain, dohot metaverse 3D di saada ekosistem.',
+    footerCopyright: '\u00A9 2026 AODS Neural Core \u00B7 Ahmad Fashich Azzuhri Ramadhani \u00B7 Hak cipta dilindungi.',
+    footerLinks: ['Fitur', 'Blockchain', 'AI Core', 'Dokumentasi', 'Kebijakan Privasi', 'Syarat Layanan'],
+    langTitle: 'Pillit Hata',
+  },
+  ac: {
+    badge: 'PLATFORM METAVERSE ENTERPRISE KOMPREHENSIF',
+    tagline: 'Orkestrasion Otomatis Sistem Digital',
+    sub: 'Platform enterprise generasi sateureuk \u2014 AI Agent, blockchain, dan visualisasi 3D holografik dalam saboh ekosistem terintegrasi.',
+    watchTrailer: 'Kalon Trailer', exploreUniverse: 'Jelajah Universe', scroll: 'GULUNG',
+    sectionMetrics: 'Metrik Sistém', platformStats: 'Statistik Platform',
+    sectionArch: 'Arsitektur Poliglot', archTitle: '9 Bahsa, 1 Ekosistém',
+    sectionInfra: 'Infrastruktur Langsung', infraTitle: 'Infrastruktur Real-Time',
+    infraSub: 'Pantau késéhatan microservice, kepatuhan, dan uptime sistém secara langsung.',
+    sectionCapabilities: 'Kemampuan Inti', capTitle: 'Platform Generasi Baro',
+    sectionJoin: 'Gabong AODS', joinTitle: 'Siap Meuseuki\nMetaverse Holografik?',
+    joinSub: 'Gabong ngon AODS Neural Core \u2014 platform enterprise teue yang meugabongkan AI, blockchain, dan visualisasi 3D.',
+    createAccount: 'Buwat Akun', signIn: 'Masuk',
+    pills: ['Tier gratis tersedia', 'MetaMask didhukong', 'ISO 27001', '9 Bahsa', 'Open Source'],
+    footerTagline: 'Platform enterprise generasi baro \u2014 AI, blockchain, dan metaverse 3D dalam saboh ekosistém.',
+    footerCopyright: '\u00A9 2026 AODS Neural Core \u00B7 Ahmad Fashich Azzuhri Ramadhani \u00B7 Hak cipta dilindungi.',
+    footerLinks: ['Fitur', 'Blockchain', 'AI Core', 'Dokumentasi', 'Kebijakan Privasi', 'Syarat Layanan'],
+    langTitle: 'Pilèh Bahsa',
+  },
+  en: {
+    badge: 'A COMPREHENSIVE ENTERPRISE METAVERSE PLATFORM',
+    tagline: 'Autonomous Orchestration of Digital Systems',
+    sub: 'The next-generation enterprise platform \u2014 AI Agents, blockchain, and holographic 3D visualization in one integrated ecosystem.',
+    watchTrailer: 'Watch Trailer', exploreUniverse: 'Explore Universe', scroll: 'SCROLL',
+    sectionMetrics: 'System Metrics', platformStats: 'Platform Statistics',
+    sectionArch: 'Polyglot Architecture', archTitle: '9 Languages, 1 Ecosystem',
+    sectionInfra: 'Live Infrastructure', infraTitle: 'Real-Time Infrastructure',
+    infraSub: 'Monitor microservice health, compliance scores, and system uptime in real-time.',
+    sectionCapabilities: 'Core Capabilities', capTitle: 'Next-Gen Platform',
+    sectionJoin: 'Join AODS', joinTitle: 'Ready to Enter the\nHolographic Metaverse?',
+    joinSub: 'Join AODS Neural Core \u2014 the leading enterprise platform unifying AI, blockchain, and 3D visualization.',
+    createAccount: 'Create Account', signIn: 'Sign In',
+    pills: ['Free tier available', 'MetaMask supported', 'ISO 27001', '9 Languages', 'Open Source'],
+    footerTagline: 'The next-generation enterprise platform \u2014 AI, blockchain, and 3D metaverse in one ecosystem.',
+    footerCopyright: '\u00A9 2026 AODS Neural Core \u00B7 Ahmad Fashich Azzuhri Ramadhani \u00B7 All rights reserved.',
+    footerLinks: ['Features', 'Blockchain', 'AI Core', 'Documentation', 'Privacy Policy', 'Terms of Service'],
+    langTitle: 'Choose Language',
+  },
+  ja: {
+    badge: '\u5305\u62EC\u7684\u306A\u30A8\u30F3\u30BF\u30FC\u30D7\u30E9\u30A4\u30BA\u30E1\u30BF\u30D0\u30FC\u30B9\u30D7\u30E9\u30C3\u30C8\u30D5\u30A9\u30FC\u30E0',
+    tagline: '\u30C7\u30B8\u30BF\u30EB\u30B7\u30B9\u30C6\u30E0\u306E\u81EA\u5F8B\u30AA\u30FC\u30B1\u30B9\u30C8\u30EC\u30FC\u30B7\u30E7\u30F3',
+    sub: '\u6B21\u4E16\u4EE3\u30A8\u30F3\u30BF\u30FC\u30D7\u30E9\u30A4\u30BA\u30D7\u30E9\u30C3\u30C8\u30D5\u30A9\u30FC\u30E0 \u2014 AI\u30A8\u30FC\u30B8\u30A7\u30F3\u30C8\u3001\u30D6\u30ED\u30C3\u30AF\u30C1\u30A7\u30FC\u30F3\u3001\u30DB\u30ED\u30B0\u30E9\u30D5\u30A3\u30C3\u30AF3D\u30D3\u30B8\u30E5\u30A2\u30E9\u30A4\u30BC\u30FC\u30B7\u30E7\u30F3\u3092\u7D71\u5408\u3057\u305F\u30A8\u30B3\u30B7\u30B9\u30C6\u30E0\u3002',
+    watchTrailer: '\u30C8\u30EC\u30FC\u30E9\u30FC\u3092\u898B\u308B', exploreUniverse: '\u30E6\u30CB\u30D0\u30FC\u30B9\u3092\u63A2\u7D22', scroll: '\u30B9\u30AF\u30ED\u30FC\u30EB',
+    sectionMetrics: '\u30B7\u30B9\u30C6\u30E0\u30E1\u30C8\u30EA\u30AF\u30B9', platformStats: '\u30D7\u30E9\u30C3\u30C8\u30D5\u30A9\u30FC\u30E0\u7D71\u8A08',
+    sectionArch: '\u30DD\u30EA\u30B0\u30ED\u30C3\u30C8\u30A2\u30FC\u30AD\u30C6\u30AF\u30C1\u30E3', archTitle: '9\u8A00\u8A9E\u30011\u30A8\u30B3\u30B7\u30B9\u30C6\u30E0',
+    sectionInfra: '\u30E9\u30A4\u30D6\u30A4\u30F3\u30D5\u30E9', infraTitle: '\u30EA\u30A2\u30EB\u30BF\u30A4\u30E0\u30A4\u30F3\u30D5\u30E9',
+    infraSub: '\u30DE\u30A4\u30AF\u30ED\u30B5\u30FC\u30D3\u30B9\u306E\u5065\u5168\u6027\u3001\u30B3\u30F3\u30D7\u30E9\u30A4\u30A2\u30F3\u30B9\u3001\u30B7\u30B9\u30C6\u30E0\u7A3C\u50CD\u6642\u9593\u3092\u30EA\u30A2\u30EB\u30BF\u30A4\u30E0\u3067\u76E3\u8996\u3002',
+    sectionCapabilities: '\u30B3\u30A2\u6A5F\u80FD', capTitle: '\u6B21\u4E16\u4EE3\u30D7\u30E9\u30C3\u30C8\u30D5\u30A9\u30FC\u30E0',
+    sectionJoin: 'AODS\u306B\u53C2\u52A0', joinTitle: '\u30DB\u30ED\u30B0\u30E9\u30D5\u30A3\u30C3\u30AF\u30E1\u30BF\u30D0\u30FC\u30B9\u3078\u306E\n\u53C2\u52A0\u6E96\u5099\u306F\u3067\u304D\u3066\u3044\u307E\u3059\u304B\uff1f',
+    joinSub: 'AODS Neural Core\u306B\u53C2\u52A0\u3057\u307E\u3057\u3087\u3046 \u2014 AI\u3001\u30D6\u30ED\u30C3\u30AF\u30C1\u30A7\u30FC\u30F3\u3001\u30B7\u30B9\u30C6\u30E0\u306E\u81EA\u5F8B\u30AA\u30FC\u30B1\u30B9\u30C8\u30EC\u30FC\u30B7\u30E7\u30F3\u3092\u7D71\u5408\u3057\u305F\u6700\u5148\u7AEF\u30A8\u30F3\u30BF\u30FC\u30D7\u30E9\u30A4\u30BA\u30D7\u30E9\u30C3\u30C8\u30D5\u30A9\u30FC\u30E0\u3002',
+    createAccount: '\u30A2\u30AB\u30A6\u30F3\u30C8\u4F5C\u6210', signIn: '\u30B5\u30A4\u30F3\u30A4\u30F3',
+    pills: ['\u7121\u6599\u30D7\u30E9\u30F3\u3042\u308A', 'MetaMask\u5BFE\u5FDC', 'ISO 27001', '9\u8A00\u8A9E', '\u30AA\u30FC\u30D7\u30F3\u30BD\u30FC\u30B9'],
+    footerTagline: '\u6B21\u4E16\u4EE3\u30A8\u30F3\u30BF\u30FC\u30D7\u30E9\u30A4\u30BA\u30D7\u30E9\u30C3\u30C8\u30D5\u30A9\u30FC\u30E0 \u2014 AI\u3001\u30D6\u30ED\u30C3\u30AF\u30C1\u30A7\u30FC\u30F3\u3001\u30B13D\u30E1\u30BF\u30D0\u30FC\u30B91\u3064\u306E\u30A8\u30B3\u30B7\u30B9\u30C6\u30E0\u3067\u3002',
+    footerCopyright: '\u00A9 2026 AODS Neural Core \u00B7 Ahmad Fashich Azzuhri Ramadhani \u00B7 \u5168\u8457\u4F5C\u6A29\u6240\u6709\u3002',
+    footerLinks: ['\u6A5F\u80FD', '\u30D6\u30ED\u30C3\u30AF\u30C1\u30A7\u30FC\u30F3', 'AI\u30B3\u30A2', '\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8', '\u30D7\u30E9\u30A4\u30D0\u30B7\u30FC\u30DD\u30EA\u30B7\u30FC', '\u5229\u7528\u898F\u7D04'],
+    langTitle: '\u8A00\u8A9E\u3092\u9078\u629E',
+  },
+  ko: {
+    badge: '\uC885\uD569 \uC5D4\uD130\uD504\uB77C\uC774\uC988 \uBA54\uD0C0\uBC84\uC2A4 \uD50C\uB7AB\uD3FC',
+    tagline: '\uB514\uC9C0\uD138 \uC2DC\uC2A4\uD15C\uC758 \uC790\uC728 \uC624\uCF00\uC2A4\uD2B8\uB808\uC774\uC158',
+    sub: '\uCC28\uC138\uB300 \uC5D4\uD130\uD504\uB77C\uC774\uC988 \uD50C\uB7AB\uD3FC \u2014 AI \uC5D0\uC774\uC804\uD2B8, \uBE14\uB85D\uCCB4\uC778, \uD640\uB85C\uADF8\uB798\uD53D 3D \uC2DC\uAC01\uD654\uB97C \uD558\uB098\uC758 \uD1B5\uD569 \uC0DD\uD0DC\uACC4\uB85C.',
+    watchTrailer: '\uD2B8\uB808\uC77C\uB7EC \uBCF4\uAE30', exploreUniverse: '\uC720\uB2C8\uBC84\uC2A4 \uD0D0\uD5D8', scroll: '\uC2A4\uD06C\uB864',
+    sectionMetrics: '\uC2DC\uC2A4\uD15C \uBA54\uD2B8\uB9AD', platformStats: '\uD50C\uB7AB\uD3FC \uD1B5\uACC4',
+    sectionArch: '\uD3F4\uB9AC\uAE00\uB7AD \uC544\uD0A4\uD14D\uCC98', archTitle: '9\uAC1C \uC5B8\uC5B4, 1\uAC1C \uC0DD\uD0DC\uACC4',
+    sectionInfra: '\uB77C\uC774\uBE0C \uC778\uD504\uB77C', infraTitle: '\uC2E4\uC2DC\uAC04 \uC778\uD504\uB77C',
+    infraSub: '\uB9C8\uC774\uD06C\uB85C\uC11C\uBE44\uC2A4 \uC0C1\uD0DC, \uCEF4\uD50C\uB77C\uC774\uC5B8\uC2A4, \uC2DC\uC2A4\uD15C \uAC00\uB3D9\uC728\uC744 \uC2E4\uC2DC\uAC04\uC73C\uB85C \uBAA8\uB2C8\uD130\uB9C1.',
+    sectionCapabilities: '\uD575\uC2EC \uAE30\uB2A5', capTitle: '\uCC28\uC138\uB300 \uD50C\uB7AB\uD3FC',
+    sectionJoin: 'AODS \uCC38\uC5EC', joinTitle: '\uD640\uB85C\uADF8\uB798\uD53D \uBA54\uD0C0\uBC84\uC2A4\uC5D0\n\uB4E4\uC5B4\uAC08 \uC900\uBE44\uAC00 \uB418\uC168\uB098\uC694?',
+    joinSub: 'AODS Neural Core\uC5D0 \uCC38\uC5EC\uD558\uC138\uC694 \u2014 AI, \uBE14\uB85D\uCCB4\uC778, 3D \uC2DC\uAC01\uD654\uB97C \uD1B5\uD569\uD55C \uCD5C\uCCA8\uB2E8 \uC5D4\uD130\uD504\uB77C\uC774\uC988 \uD50C\uB7AB\uD3FC.',
+    createAccount: '\uACC4\uC815 \uB9CC\uB4E4\uAE30', signIn: '\uB85C\uADF8\uC778',
+    pills: ['\uBB34\uB8CC \uD50C\uB79C \uC81C\uACF5', 'MetaMask \uC9C0\uC6D0', 'ISO 27001', '9\uAC1C \uC5B8\uC5B4', '\uC624\uD508 \uC18C\uC2A4'],
+    footerTagline: '\uCC28\uC138\uB300 \uC5D4\uD130\uD504\uB77C\uC774\uC988 \uD50C\uB7AB\uD3FC \u2014 AI, \uBE14\uB85D\uCCB4\uC778, 3D \uBA54\uD0C0\uBC84\uC2A4\uB97C \uD558\uB098\uC758 \uC0DD\uD0DC\uACC4\uB85C.',
+    footerCopyright: '\u00A9 2026 AODS Neural Core \u00B7 Ahmad Fashich Azzuhri Ramadhani \u00B7 \uBAA8\uB4E0 \uAD8C\uB9AC \uBCF4\uC720.',
+    footerLinks: ['\uAE30\uB2A5', '\uBE14\uB85D\uCCB4\uC778', 'AI \uCF54\uC5B4', '\uBB38\uC11C', '\uAC1C\uC778\uC815\uBCF4\uCC98\uB9AC\uBC29\uCE68', '\uC774\uC6A9\uC57D\uAD00'],
+    langTitle: '\uC5B8\uC5B4 \uC120\uD0DD',
+  },
+  zh: {
+    badge: '\u5168\u9762\u7684\u4F01\u4E1A\u5143\u5B87\u5B99\u5E73\u53F0',
+    tagline: '\u6570\u5B57\u7CFB\u7EDF\u7684\u81EA\u4E3B\u7F16\u6392',
+    sub: '\u4E0B\u4E00\u4EE3\u4F01\u4E1A\u5E73\u53F0 \u2014 AI\u4EE3\u7406\u3001\u533A\u5757\u94FE\u548C\u5168\u606F3D\u53EF\u89C6\u5316\uFF0C\u878D\u5408\u4E8E\u4E00\u4E2A\u96C6\u6210\u751F\u6001\u7CFB\u7EDF\u4E2D\u3002',
+    watchTrailer: '\u89C2\u770B\u9884\u544A\u7247', exploreUniverse: '\u63A2\u7D22\u5B87\u5B99', scroll: '\u6EDA\u52A8',
+    sectionMetrics: '\u7CFB\u7EDF\u6307\u6807', platformStats: '\u5E73\u53F0\u7EDF\u8BA1',
+    sectionArch: '\u591A\u8BED\u8A00\u67B6\u6784', archTitle: '9\u79CD\u8BED\u8A00\uFF0C1\u4E2A\u751F\u6001\u7CFB\u7EDF',
+    sectionInfra: '\u5B9E\u65F6\u57FA\u7840\u8BBE\u65BD', infraTitle: '\u5B9E\u65F6\u57FA\u7840\u8BBE\u65BD',
+    infraSub: '\u5B9E\u65F6\u76D1\u63A7\u5FAE\u670D\u52A1\u5065\u5EB7\u72B6\u51B5\u3001\u5408\u89C4\u8BC4\u5206\u548C\u7CFB\u7EDF\u6B63\u5E38\u8FD0\u884C\u65F6\u95F4\u3002',
+    sectionCapabilities: '\u6838\u5FC3\u80FD\u529B', capTitle: '\u4E0B\u4E00\u4EE3\u5E73\u53F0',
+    sectionJoin: '\u52A0\u5165AODS', joinTitle: '\u51C6\u5907\u597D\u8FDB\u5165\n\u5168\u606F\u5143\u5B87\u5B99\u4E86\u5417\uFF1F',
+    joinSub: '\u52A0\u5165AODS Neural Core \u2014 \u9886\u5148\u7684\u4F01\u4E1A\u5E73\u53F0\uFF0C\u6574\u5408AI\u3001\u533A\u5757\u94FE\u548C3D\u53EF\u89C6\u5316\u3002',
+    createAccount: '\u521B\u5EFA\u8D26\u6237', signIn: '\u767B\u5F55',
+    pills: ['\u63D0\u4F9B\u514D\u8D39\u5C42', 'MetaMask\u652F\u6301', 'ISO 27001', '9\u79CD\u8BED\u8A00', '\u5F00\u6E90'],
+    footerTagline: '\u4E0B\u4E00\u4EE3\u4F01\u4E1A\u5E73\u53F0 \u2014 AI\u3001\u533A\u5757\u94FE\u548C3D\u5143\u5B87\u5B99\u878D\u5408\u4E8E\u4E00\u4E2A\u751F\u6001\u7CFB\u7EDF\u3002',
+    footerCopyright: '\u00A9 2026 AODS Neural Core \u00B7 Ahmad Fashich Azzuhri Ramadhani \u00B7 \u4FDD\u7559\u6240\u6709\u6743\u5229\u3002',
+    footerLinks: ['\u529F\u80FD', '\u533A\u5757\u94FE', 'AI\u6838\u5FC3', '\u6587\u6863', '\u9690\u79C1\u653F\u7B56', '\u670D\u52A1\u6761\u6B3E'],
+    langTitle: '\u9009\u62E9\u8BED\u8A00',
+  },
+  ru: {
+    badge: '\u041A\u041E\u041C\u041F\u041B\u0415\u041A\u0421\u041D\u0410\u042F \u041A\u041E\u0420\u041F\u041E\u0420\u0410\u0422\u0418\u0412\u041D\u0410\u042F \u041C\u0415\u0422\u0410\u0412\u0421\u0415\u041B\u0415\u041D\u041D\u0410\u042F',
+    tagline: '\u0410\u0432\u0442\u043E\u043D\u043E\u043C\u043D\u0430\u044F \u041E\u0440\u043A\u0435\u0441\u0442\u0440\u043E\u0432\u043A\u0430 \u0426\u0438\u0444\u0440\u043E\u0432\u044B\u0445 \u0421\u0438\u0441\u0442\u0435\u043C',
+    sub: '\u041A\u043E\u0440\u043F\u043E\u0440\u0430\u0442\u0438\u0432\u043D\u0430\u044F \u043F\u043B\u0430\u0442\u0444\u043E\u0440\u043C\u0430 \u0441\u043B\u0435\u0434\u0443\u044E\u0449\u0435\u0433\u043E \u043F\u043E\u043A\u043E\u043B\u0435\u043D\u0438\u044F \u2014 \u0418\u0418-\u0430\u0433\u0435\u043D\u0442\u044B, \u0431\u043B\u043E\u043A\u0447\u0435\u0439\u043D \u0438 \u0433\u043E\u043B\u043E\u0433\u0440\u0430\u0444\u0438\u0447\u0435\u0441\u043A\u0430\u044F 3D-\u0432\u0438\u0437\u0443\u0430\u043B\u0438\u0437\u0430\u0446\u0438\u044F \u0432 \u0435\u0434\u0438\u043D\u043E\u0439 \u0438\u043D\u0442\u0435\u0433\u0440\u0438\u0440\u043E\u0432\u0430\u043D\u043D\u043E\u0439 \u044D\u043A\u043E\u0441\u0438\u0441\u0442\u0435\u043C\u0435.',
+    watchTrailer: '\u0421\u043C\u043E\u0442\u0440\u0435\u0442\u044C \u0442\u0440\u0435\u0439\u043B\u0435\u0440', exploreUniverse: '\u0418\u0441\u0441\u043B\u0435\u0434\u043E\u0432\u0430\u0442\u044C \u0432\u0441\u0435\u043B\u0435\u043D\u043D\u0443\u044E', scroll: '\u041F\u0420\u041E\u041A\u0420\u0423\u0422\u0418\u0422\u042C',
+    sectionMetrics: '\u0421\u0438\u0441\u0442\u0435\u043C\u043D\u044B\u0435 \u043C\u0435\u0442\u0440\u0438\u043A\u0438', platformStats: '\u0421\u0442\u0430\u0442\u0438\u0441\u0442\u0438\u043A\u0430 \u043F\u043B\u0430\u0442\u0444\u043E\u0440\u043C\u044B',
+    sectionArch: '\u041F\u043E\u043B\u0438\u0433\u043B\u043E\u0442\u043D\u0430\u044F \u0430\u0440\u0445\u0438\u0442\u0435\u043A\u0442\u0443\u0440\u0430', archTitle: '9 \u044F\u0437\u044B\u043A\u043E\u0432, 1 \u044D\u043A\u043E\u0441\u0438\u0441\u0442\u0435\u043C\u0430',
+    sectionInfra: '\u0416\u0438\u0432\u0430\u044F \u0438\u043D\u0444\u0440\u0430\u0441\u0442\u0440\u0443\u043A\u0442\u0443\u0440\u0430', infraTitle: '\u0418\u043D\u0444\u0440\u0430\u0441\u0442\u0440\u0443\u043A\u0442\u0443\u0440\u0430 \u0432 \u0440\u0435\u0430\u043B\u044C\u043D\u043E\u043C \u0432\u0440\u0435\u043C\u0435\u043D\u0438',
+    infraSub: '\u041C\u043E\u043D\u0438\u0442\u043E\u0440\u0438\u043D\u0433 \u0440\u0430\u0431\u043E\u0442\u043E\u0441\u043F\u043E\u0441\u043E\u0431\u043D\u043E\u0441\u0442\u0438 \u043C\u0438\u043A\u0440\u043E\u0441\u0435\u0440\u0432\u0438\u0441\u043E\u0432, \u0441\u043E\u043E\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0438\u044F \u0442\u0440\u0435\u0431\u043E\u0432\u0430\u043D\u0438\u044F\u043C \u0438 \u0432\u0440\u0435\u043C\u0435\u043D\u0438 \u0431\u0435\u0437\u043E\u0442\u043A\u0430\u0437\u043D\u043E\u0439 \u0440\u0430\u0431\u043E\u0442\u044B.',
+    sectionCapabilities: '\u041E\u0441\u043D\u043E\u0432\u043D\u044B\u0435 \u0432\u043E\u0437\u043C\u043E\u0436\u043D\u043E\u0441\u0442\u0438', capTitle: '\u041F\u043B\u0430\u0442\u0444\u043E\u0440\u043C\u0430 \u043D\u043E\u0432\u043E\u0433\u043E \u043F\u043E\u043A\u043E\u043B\u0435\u043D\u0438\u044F',
+    sectionJoin: '\u041F\u0440\u0438\u0441\u043E\u0435\u0434\u0438\u043D\u0438\u0442\u044C\u0441\u044F \u043A AODS', joinTitle: '\u0413\u043E\u0442\u043E\u0432\u044B \u0432\u043E\u0439\u0442\u0438 \u0432\n\u0433\u043E\u043B\u043E\u0433\u0440\u0430\u0444\u0438\u0447\u0435\u0441\u043A\u0443\u044E \u043C\u0435\u0442\u0430\u0432\u0441\u0435\u043B\u0435\u043D\u043D\u0443\u044E?',
+    joinSub: '\u041F\u0440\u0438\u0441\u043E\u0435\u0434\u0438\u043D\u044F\u0439\u0442\u0435\u0441\u044C \u043A AODS Neural Core \u2014 \u0432\u0435\u0434\u0443\u0449\u0435\u0439 \u043A\u043E\u0440\u043F\u043E\u0440\u0430\u0442\u0438\u0432\u043D\u043E\u0439 \u043F\u043B\u0430\u0442\u0444\u043E\u0440\u043C\u0435, \u043E\u0431\u044A\u0435\u0434\u0438\u043D\u044F\u044E\u0449\u0435\u0439 \u0418\u0418, \u0431\u043B\u043E\u043A\u0447\u0435\u0439\u043D \u0438 3D-\u0432\u0438\u0437\u0443\u0430\u043B\u0438\u0437\u0430\u0446\u0438\u044E.',
+    createAccount: '\u0421\u043E\u0437\u0434\u0430\u0442\u044C \u0430\u043A\u043A\u0430\u0443\u043D\u0442', signIn: '\u0412\u043E\u0439\u0442\u0438',
+    pills: ['\u0411\u0435\u0441\u043F\u043B\u0430\u0442\u043D\u044B\u0439 \u0443\u0440\u043E\u0432\u0435\u043D\u044C', 'MetaMask \u043F\u043E\u0434\u0434\u0435\u0440\u0436\u0438\u0432\u0430\u0435\u0442\u0441\u044F', 'ISO 27001', '9 \u044F\u0437\u044B\u043A\u043E\u0432', '\u041E\u0442\u043A\u0440\u044B\u0442\u044B\u0439 \u0438\u0441\u0445\u043E\u0434\u043D\u044B\u0439 \u043A\u043E\u0434'],
+    footerTagline: '\u041A\u043E\u0440\u043F\u043E\u0440\u0430\u0442\u0438\u0432\u043D\u0430\u044F \u043F\u043B\u0430\u0442\u0444\u043E\u0440\u043C\u0430 \u0441\u043B\u0435\u0434\u0443\u044E\u0449\u0435\u0433\u043E \u043F\u043E\u043A\u043E\u043B\u0435\u043D\u0438\u044F \u2014 \u0418\u0418, \u0431\u043B\u043E\u043A\u0447\u0435\u0439\u043D \u0438 3D-\u043C\u0435\u0442\u0430\u0432\u0441\u0435\u043B\u0435\u043D\u043D\u0430\u044F \u0432 \u0435\u0434\u0438\u043D\u043E\u0439 \u044D\u043A\u043E\u0441\u0438\u0441\u0442\u0435\u043C\u0435.',
+    footerCopyright: '\u00A9 2026 AODS Neural Core \u00B7 Ahmad Fashich Azzuhri Ramadhani \u00B7 \u0412\u0441\u0435 \u043F\u0440\u0430\u0432\u0430 \u0437\u0430\u0449\u0438\u0449\u0435\u043D\u044B.',
+    footerLinks: ['\u0424\u0443\u043D\u043A\u0446\u0438\u0438', '\u0411\u043B\u043E\u043A\u0447\u0435\u0439\u043D', '\u0418\u0418-\u044F\u0434\u0440\u043E', '\u0414\u043E\u043A\u0443\u043C\u0435\u043D\u0442\u0430\u0446\u0438\u044F', '\u041F\u043E\u043B\u0438\u0442\u0438\u043A\u0430 \u043A\u043E\u043D\u0444\u0438\u0434\u0435\u043D\u0446\u0438\u0430\u043B\u044C\u043D\u043E\u0441\u0442\u0438', '\u0423\u0441\u043B\u043E\u0432\u0438\u044F \u0438\u0441\u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u043D\u0438\u044F'],
+    langTitle: '\u0412\u044B\u0431\u0440\u0430\u0442\u044C \u044F\u0437\u044B\u043A',
+  },
+  ar: {
+    badge: '\u0645\u0646\u0635\u0629 \u0645\u064A\u062A\u0627\u0641\u064A\u0631\u0633 \u0645\u0624\u0633\u0633\u064A\u0629 \u0634\u0627\u0645\u0644\u0629',
+    tagline: '\u0627\u0644\u062A\u0646\u0633\u064A\u0642 \u0627\u0644\u0630\u0627\u062A\u064A \u0644\u0644\u0623\u0646\u0638\u0645\u0629 \u0627\u0644\u0631\u0642\u0645\u064A\u0629',
+    sub: '\u0645\u0646\u0635\u0629 \u0645\u0624\u0633\u0633\u064A\u0629 \u0645\u0646 \u0627\u0644\u062C\u064A\u0644 \u0627\u0644\u0642\u0627\u062F\u0645 \u2014 \u0648\u0643\u0644\u0627\u0621 \u0627\u0644\u0630\u0643\u0627\u0621 \u0627\u0644\u0627\u0635\u0637\u0646\u0627\u0639\u064A \u0648\u0627\u0644\u0628\u0644\u0648\u0643\u062A\u0634\u064A\u0646 \u0648\u0627\u0644\u062A\u0635\u0648\u0631 \u0627\u0644\u0645\u062C\u0633\u0645 \u062B\u0644\u0627\u062B\u064A \u0627\u0644\u0623\u0628\u0639\u0627\u062F \u0641\u064A \u0646\u0638\u0627\u0645 \u0628\u064A\u0626\u064A \u0645\u062A\u0643\u0627\u0645\u0644.',
+    watchTrailer: '\u0634\u0627\u0647\u062F \u0627\u0644\u0645\u0642\u0637\u0639 \u0627\u0644\u062A\u0631\u0648\u064A\u062C\u064A', exploreUniverse: '\u0627\u0633\u062A\u0643\u0634\u0641 \u0627\u0644\u0643\u0648\u0646', scroll: '\u0645\u0631\u0631',
+    sectionMetrics: '\u0645\u0642\u0627\u064A\u064A\u0633 \u0627\u0644\u0646\u0638\u0627\u0645', platformStats: '\u0625\u062D\u0635\u0627\u0626\u064A\u0627\u062A \u0627\u0644\u0645\u0646\u0635\u0629',
+    sectionArch: '\u0628\u0646\u064A\u0629 \u0645\u062A\u0639\u062F\u062F\u0629 \u0627\u0644\u0644\u063A\u0627\u062A', archTitle: '9 \u0644\u063A\u0627\u062A\u060C \u0646\u0638\u0627\u0645 \u0628\u064A\u0626\u064A \u0648\u0627\u062D\u062F',
+    sectionInfra: '\u0627\u0644\u0628\u0646\u064A\u0629 \u0627\u0644\u062A\u062D\u062A\u064A\u0629 \u0627\u0644\u0645\u0628\u0627\u0634\u0631\u0629', infraTitle: '\u0627\u0644\u0628\u0646\u064A\u0629 \u0627\u0644\u062A\u062D\u062A\u064A\u0629 \u0641\u064A \u0627\u0644\u0648\u0642\u062A \u0627\u0644\u0641\u0639\u0644\u064A',
+    infraSub: '\u0645\u0631\u0627\u0642\u0628\u0629 \u0635\u062D\u0629 \u0627\u0644\u062E\u062F\u0645\u0627\u062A \u0627\u0644\u0645\u0635\u063A\u0631\u0629 \u0648\u062F\u0631\u062C\u0627\u062A \u0627\u0644\u0627\u0645\u062A\u062B\u0627\u0644 \u0648\u0648\u0642\u062A \u062A\u0634\u063A\u064A\u0644 \u0627\u0644\u0646\u0638\u0627\u0645 \u0641\u064A \u0627\u0644\u0648\u0642\u062A \u0627\u0644\u0641\u0639\u0644\u064A.',
+    sectionCapabilities: '\u0627\u0644\u0642\u062F\u0631\u0627\u062A \u0627\u0644\u0623\u0633\u0627\u0633\u064A\u0629', capTitle: '\u0645\u0646\u0635\u0629 \u0627\u0644\u062C\u064A\u0644 \u0627\u0644\u0642\u0627\u062F\u0645',
+    sectionJoin: '\u0627\u0646\u0636\u0645 \u0625\u0644\u0649 AODS', joinTitle: '\u0647\u0644 \u0623\u0646\u062A \u0645\u0633\u062A\u0639\u062F \u0644\u0644\u062F\u062E\u0648\u0644 \u0625\u0644\u0649\n\u0627\u0644\u0645\u064A\u062A\u0627\u0641\u064A\u0631\u0633 \u0627\u0644\u0645\u062C\u0633\u0645\u061F',
+    joinSub: '\u0627\u0646\u0636\u0645 \u0625\u0644\u0649 AODS Neural Core \u2014 \u0645\u0646\u0635\u0629 \u0627\u0644\u0645\u0624\u0633\u0633\u0627\u062A \u0627\u0644\u0631\u0627\u0626\u062F\u0629 \u0627\u0644\u062A\u064A \u062A\u062C\u0645\u0639 \u0628\u064A\u0646 \u0627\u0644\u0630\u0643\u0627\u0621 \u0627\u0644\u0627\u0635\u0637\u0646\u0627\u0639\u064A \u0648\u0627\u0644\u0628\u0644\u0648\u0643\u062A\u0634\u064A\u0646 \u0648\u0627\u0644\u062A\u0635\u0648\u0631 \u062B\u0644\u0627\u062B\u064A \u0627\u0644\u0623\u0628\u0639\u0627\u062F.',
+    createAccount: '\u0625\u0646\u0634\u0627\u0621 \u062D\u0633\u0627\u0628', signIn: '\u062A\u0633\u062C\u064A\u0644 \u0627\u0644\u062F\u062E\u0648\u0644',
+    pills: ['\u0645\u0633\u062A\u0648\u0649 \u0645\u062C\u0627\u0646\u064A \u0645\u062A\u0627\u062D', 'MetaMask \u0645\u062F\u0639\u0648\u0645', 'ISO 27001', '9 \u0644\u063A\u0627\u062A', '\u0645\u0641\u062A\u0648\u062D \u0627\u0644\u0645\u0635\u062F\u0631'],
+    footerTagline: '\u0645\u0646\u0635\u0629 \u0645\u0624\u0633\u0633\u064A\u0629 \u0645\u0646 \u0627\u0644\u062C\u064A\u0644 \u0627\u0644\u0642\u0627\u062F\u0645 \u2014 \u0627\u0644\u0630\u0643\u0627\u0621 \u0627\u0644\u0627\u0635\u0637\u0646\u0627\u0639\u064A \u0648\u0627\u0644\u0628\u0644\u0648\u0643\u062A\u0634\u064A\u0646 \u0648\u0627\u0644\u0645\u064A\u062A\u0627\u0641\u064A\u0631\u0633 \u062B\u0644\u0627\u062B\u064A \u0627\u0644\u0623\u0628\u0639\u0627\u062F \u0641\u064A \u0646\u0638\u0627\u0645 \u0628\u064A\u0626\u064A \u0648\u0627\u062D\u062F.',
+    footerCopyright: '\u00A9 2026 AODS Neural Core \u00B7 Ahmad Fashich Azzuhri Ramadhani \u00B7 \u062C\u0645\u064A\u0639 \u0627\u0644\u062D\u0642\u0648\u0642 \u0645\u062D\u0641\u0648\u0638\u0629.',
+    footerLinks: ['\u0627\u0644\u0645\u064A\u0632\u0627\u062A', '\u0627\u0644\u0628\u0644\u0648\u0643\u062A\u0634\u064A\u0646', '\u0646\u0648\u0627\u0629 \u0627\u0644\u0630\u0643\u0627\u0621 \u0627\u0644\u0627\u0635\u0637\u0646\u0627\u0639\u064A', '\u0627\u0644\u062A\u0648\u062B\u064A\u0642', '\u0633\u064A\u0627\u0633\u0629 \u0627\u0644\u062E\u0635\u0648\u0635\u064A\u0629', '\u0634\u0631\u0648\u0637 \u0627\u0644\u062E\u062F\u0645\u0629'],
+    langTitle: '\u0627\u062E\u062A\u0631 \u0627\u0644\u0644\u063A\u0629',
+  },
+};
 
 // ── CSS injected once ─────────────────────────────────────
 
@@ -22,6 +284,7 @@ const GLOBAL_CSS = `
 @keyframes lp-shimmer { 0%{background-position:-300% center} 100%{background-position:300% center} }
 @keyframes lp-scanline { 0%,100%{top:0%} 100%{top:100%} }
 @keyframes lp-glyph   { 0%,100%{opacity:.2} 50%{opacity:.7} }
+@keyframes lp-float   { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
 @keyframes lp-orb     {
   0%  { box-shadow: 0 0 30px #ef444440, inset 0 0 30px #ef444415; }
   50% { box-shadow: 0 0 80px #ef444480, inset 0 0 60px #ef444430; }
@@ -336,7 +599,8 @@ const Ticker = () => (
 // HERO SECTION
 // ─────────────────────────────────────────────────────────
 
-const HeroSection = ({ onTrailer, scrollY }: { onTrailer:()=>void; scrollY:number }) => {
+const HeroSection = ({ onTrailer, scrollY, lang='default' }: { onTrailer:()=>void; scrollY:number; lang?:LangKey }) => {
+  const tl=T[lang as LangKey];
   const navigate=useNavigate();
   const [glitch,setGlitch]=useState(false);
   useEffect(()=>{const t=setInterval(()=>{setGlitch(true);setTimeout(()=>setGlitch(false),100);},4200);return()=>clearInterval(t);},[]);
@@ -346,7 +610,7 @@ const HeroSection = ({ onTrailer, scrollY }: { onTrailer:()=>void; scrollY:numbe
   const scale      = Math.max(1 - scrollY * 0.00025, 0.9);
 
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center px-4 text-center" style={{pointerEvents:'none',overflow:'hidden'}}>
+    <section style={{position:'relative',minHeight:'100vh',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',textAlign:'center',padding:'0 24px',overflow:'hidden',pointerEvents:'none'}}>
       {/* Decorative rings */}
       {[320,460,580].map((sz,i)=>(
         <div key={i} style={{position:'absolute',top:'50%',left:'50%',width:sz,height:sz,marginLeft:-sz/2,marginTop:-sz/2,borderRadius:'50%',border:`1px solid rgba(239,68,68,${.1-.025*i})`,animation:`${i%2===0?'lp-spin':'lp-rspin'} ${22+i*8}s linear infinite`,pointerEvents:'none'}}/>
@@ -356,12 +620,12 @@ const HeroSection = ({ onTrailer, scrollY }: { onTrailer:()=>void; scrollY:numbe
         <div style={{position:'absolute',left:0,right:0,height:1,background:'linear-gradient(90deg,transparent,rgba(239,68,68,.25),transparent)',animation:'lp-scanline 8s linear infinite'}}/>
       </div>
 
-      <motion.div style={{transform:`translateY(${parallaxY}px) scale(${scale})`,opacity,pointerEvents:'auto'}}>
+      <motion.div style={{transform:`translateY(${parallaxY}px) scale(${scale})`,opacity,pointerEvents:'auto',width:'100%',maxWidth:760,display:'flex',flexDirection:'column',alignItems:'center'}}>
         {/* Status badge */}
         <motion.div initial={{opacity:0,y:-16}} animate={{opacity:1,y:0}} transition={{delay:.1}}
           style={{display:'inline-flex',alignItems:'center',gap:8,padding:'6px 22px',borderRadius:999,marginBottom:28,background:'rgba(239,68,68,.07)',border:'1px solid rgba(239,68,68,.22)',backdropFilter:'blur(8px)'}}>
           <span style={{width:6,height:6,borderRadius:'50%',background:'#ef4444',animation:'lp-pulse 1.4s ease-in-out infinite'}}/>
-          <span style={{fontFamily:"'Courier New',monospace",fontSize:10,color:'#fca5a5',letterSpacing:4}}>A COMPREHENSIVE ENTERPRISE METAVERSE PLATFORM</span>
+          <span style={{fontFamily:"'Courier New',monospace",fontSize:10,color:'#fca5a5',letterSpacing:4}}>{tl.badge}</span>
         </motion.div>
 
         {/* AODS title with glitch */}
@@ -379,7 +643,7 @@ const HeroSection = ({ onTrailer, scrollY }: { onTrailer:()=>void; scrollY:numbe
 
         <motion.p initial={{opacity:0}} animate={{opacity:1}} transition={{delay:.3}}
           style={{fontFamily:"'Courier New',monospace",fontSize:'clamp(12px,1.7vw,16px)',color:'rgba(255,210,210,.7)',letterSpacing:'0.3em',marginBottom:8}}>
-          Autonomous Orchestration of Digital Systems
+          {tl.tagline}
         </motion.p>
 
         <motion.p animate={{opacity:[.5,1,.5]}} transition={{duration:2.5,repeat:Infinity}}
@@ -389,13 +653,13 @@ const HeroSection = ({ onTrailer, scrollY }: { onTrailer:()=>void; scrollY:numbe
 
         <motion.p initial={{opacity:0}} animate={{opacity:1}} transition={{delay:.45}}
           style={{color:'rgba(252,165,165,.5)',maxWidth:500,margin:'0 auto 48px',fontSize:'clamp(13px,1.3vw,16px)',lineHeight:1.85}}>
-          Platform enterprise generasi berikutnya - AI Agent, blockchain, dan visualisasi 3D holografik dalam satu ekosistem terintegrasi.
+          {tl.sub}
         </motion.p>
 
         <motion.div initial={{opacity:0,y:16}} animate={{opacity:1,y:0}} transition={{delay:.6}}
-          className="flex flex-col sm:flex-row gap-5 justify-center items-center">
-          <Btn3D onClick={onTrailer} primary icon="▶">Watch Trailer</Btn3D>
-          <Btn3D onClick={()=>navigate('/signup')} icon="◈">Explore Universe</Btn3D>
+          style={{display:'flex',flexWrap:'wrap',gap:20,justifyContent:'center',alignItems:'center'}}>
+          <Btn3D onClick={onTrailer} primary icon="▶">{tl.watchTrailer}</Btn3D>
+          <Btn3D onClick={()=>navigate('/signup')} icon="◈">{tl.exploreUniverse}</Btn3D>
         </motion.div>
       </motion.div>
 
@@ -403,7 +667,7 @@ const HeroSection = ({ onTrailer, scrollY }: { onTrailer:()=>void; scrollY:numbe
       <motion.div initial={{opacity:0}} animate={{opacity:1}} transition={{delay:1.6}}
         style={{position:'absolute',bottom:36,left:'50%',transform:'translateX(-50%)',pointerEvents:'none',opacity:Math.max(1-scrollY/180,0)}}>
         <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:8}}>
-          <span style={{fontFamily:"'Courier New',monospace",fontSize:9,color:'rgba(239,68,68,.35)',letterSpacing:'0.5em'}}>SCROLL</span>
+          <span style={{fontFamily:"'Courier New',monospace",fontSize:9,color:'rgba(239,68,68,.35)',letterSpacing:'0.5em'}}>{tl.scroll}</span>
           <div style={{width:1,height:52,background:'linear-gradient(to bottom,#ef4444,transparent)',animation:'lp-pulse 1.8s ease-in-out infinite'}}/>
         </div>
       </motion.div>
@@ -416,36 +680,46 @@ const HeroSection = ({ onTrailer, scrollY }: { onTrailer:()=>void; scrollY:numbe
 // ─────────────────────────────────────────────────────────
 
 const STATS = [
-  {value:9,   suffix:'',   label:'Languages',          sub:'Polyglot Architecture', icon:'⬡'},
-  {value:8,   suffix:'',   label:'Microservices',       sub:'Docker Containers',     icon:'⊞'},
-  {value:9,   suffix:'',   label:'Blockchain Modules',  sub:'Smart Contracts',       icon:'◈'},
-  {value:50,  suffix:'+',  label:'API Endpoints',       sub:'REST + WebSocket',      icon:'⊕'},
-  {value:12,  suffix:'K+', label:'Lines of Code',       sub:'65+ Files',             icon:'◇'},
-  {value:60,  suffix:' FPS',label:'3D Performance',     sub:'GPU Accelerated',       icon:'▷'},
+  {value:9,   suffix:'',    label:'Languages',         sub:'Polyglot Architecture', icon:'⬡', color:'#f87171'},
+  {value:8,   suffix:'',    label:'Microservices',      sub:'Docker Containers',     icon:'⊞', color:'#22d3ee'},
+  {value:9,   suffix:'',    label:'Blockchain Modules', sub:'Smart Contracts',       icon:'◈', color:'#a78bfa'},
+  {value:50,  suffix:'+',   label:'API Endpoints',      sub:'REST + WebSocket',      icon:'⊕', color:'#4ade80'},
+  {value:12,  suffix:'K+',  label:'Lines of Code',      sub:'65+ Files',             icon:'◇', color:'#fbbf24'},
+  {value:60,  suffix:' FPS',label:'3D Performance',     sub:'GPU Accelerated',       icon:'▷', color:'#fb923c'},
 ];
 
 const StatsSection = () => (
-  <section className="relative px-4 sm:px-6 py-24">
-    <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,.8)',backdropFilter:'blur(16px)'}}/>
+  <section className="relative px-4 sm:px-6 py-28">
+    <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,.82)',backdropFilter:'blur(16px)'}}/>
+    {/* Subtle grid lines */}
+    <div style={{position:'absolute',inset:0,backgroundImage:'linear-gradient(rgba(239,68,68,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(239,68,68,.03) 1px,transparent 1px)',backgroundSize:'60px 60px',pointerEvents:'none'}}/>
     <div className="relative max-w-6xl mx-auto">
-      <div className="text-center mb-14">
+      <div className="text-center mb-16">
         <SectionLabel>System Metrics</SectionLabel>
         <motion.h2 initial={{opacity:0,y:14}} whileInView={{opacity:1,y:0}} viewport={{once:true}}
           style={{fontFamily:"'Courier New',monospace",fontWeight:900,fontSize:'clamp(24px,4vw,40px)',color:'#fff',margin:0}}>
           Platform <span style={{background:'linear-gradient(90deg,#f87171,#ef4444)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>Statistics</span>
         </motion.h2>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(190px,1fr))',gap:20}}>
         {STATS.map((s,i)=>(
-          <motion.div key={i} initial={{opacity:0,y:28,rotateX:-12}} whileInView={{opacity:1,y:0,rotateX:0}} viewport={{once:true,margin:'-40px'}} transition={{delay:i*.06,duration:.55,ease:[.22,1,.36,1]}}>
-            <TiltCard style={{padding:'24px 20px',borderRadius:16,textAlign:'center',cursor:'default',background:'linear-gradient(135deg,rgba(22,4,4,.92),rgba(8,1,1,.96))',border:'1px solid rgba(239,68,68,.15)',backdropFilter:'blur(12px)',boxShadow:'0 4px 24px rgba(0,0,0,.45)'}}>
-              <div style={{position:'absolute',top:0,left:0,right:0,height:2,background:'linear-gradient(90deg,transparent,rgba(239,68,68,.7),transparent)',animation:'lp-beam 3.5s linear infinite',backgroundSize:'200% auto'}}/>
-              <p style={{fontFamily:"'Courier New',monospace",fontSize:11,color:'rgba(239,68,68,.4)',marginBottom:8}}>{s.icon}</p>
-              <p style={{fontFamily:"'Courier New',monospace",fontWeight:900,fontSize:'clamp(30px,4vw,50px)',margin:'0 0 6px',background:'linear-gradient(135deg,#fff,#fca5a5 50%,#ef4444)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',lineHeight:1}}>
+          <motion.div key={i} initial={{opacity:0,y:32,scale:.94}} whileInView={{opacity:1,y:0,scale:1}} viewport={{once:true,margin:'-40px'}} transition={{delay:i*.07,duration:.6,ease:[.22,1,.36,1]}}>
+            <TiltCard style={{padding:'28px 22px',borderRadius:20,textAlign:'center',cursor:'default',background:`linear-gradient(135deg,rgba(18,3,3,.94),rgba(6,1,1,.97))`,border:`1px solid ${s.color}20`,backdropFilter:'blur(12px)',boxShadow:`0 4px 28px rgba(0,0,0,.5),0 0 40px ${s.color}06`}}>
+              <div style={{position:'absolute',top:0,left:0,right:0,height:2,background:`linear-gradient(90deg,transparent,${s.color}90,transparent)`,animation:'lp-beam 3.5s linear infinite',backgroundSize:'200% auto'}}/>
+              {/* Icon circle */}
+              <div style={{width:46,height:46,borderRadius:13,background:`${s.color}12`,border:`1px solid ${s.color}30`,display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px',fontSize:20,color:s.color,boxShadow:`0 0 20px ${s.color}18`}}>
+                {s.icon}
+              </div>
+              <p style={{fontFamily:"'Courier New',monospace",fontWeight:900,fontSize:'clamp(32px,4vw,52px)',margin:'0 0 8px',background:`linear-gradient(135deg,#fff 0%,${s.color} 100%)`,WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',lineHeight:1}}>
                 <AnimCounter to={s.value} suffix={s.suffix}/>
               </p>
-              <p style={{fontWeight:700,color:'rgba(255,255,255,.85)',fontSize:'clamp(11px,1.2vw,14px)',marginBottom:4}}>{s.label}</p>
-              <p style={{fontSize:10,color:'rgba(252,165,165,.4)',fontFamily:"'Courier New',monospace",letterSpacing:1}}>{s.sub}</p>
+              <p style={{fontWeight:700,color:'rgba(255,255,255,.88)',fontSize:'clamp(11px,1.2vw,14px)',marginBottom:4}}>{s.label}</p>
+              <p style={{fontSize:10,color:`${s.color}70`,fontFamily:"'Courier New',monospace",letterSpacing:1}}>{s.sub}</p>
+              {/* Animated bottom bar */}
+              <div style={{height:2,background:'rgba(255,255,255,.05)',borderRadius:1,marginTop:16,overflow:'hidden'}}>
+                <motion.div initial={{width:0}} whileInView={{width:'100%'}} viewport={{once:true}} transition={{duration:1.4,delay:i*.1,ease:'easeOut'}}
+                  style={{height:'100%',background:`linear-gradient(90deg,${s.color}40,${s.color})`,borderRadius:1}}/>
+              </div>
             </TiltCard>
           </motion.div>
         ))}
@@ -453,6 +727,104 @@ const StatsSection = () => (
     </div>
   </section>
 );
+
+// ─────────────────────────────────────────────────────────
+// INFRA SECTION — replaces LiveSystemStatus
+// ─────────────────────────────────────────────────────────
+
+const INFRA_NODES = [
+  { name:'API Gateway',     lang:'Python',  port:'9000', status:'Online',  health:98, color:'#3b82f6' },
+  { name:'Neural Core',     lang:'Python',  port:'9001', status:'Online',  health:95, color:'#a78bfa' },
+  { name:'Go Telemetry',    lang:'Go',      port:'9002', status:'Online',  health:99, color:'#22d3ee' },
+  { name:'C++ HPC',         lang:'C++',     port:'9003', status:'Online',  health:97, color:'#8b5cf6' },
+  { name:'C# Enterprise',   lang:'C#',      port:'9004', status:'Standby', health:82, color:'#6366f1' },
+  { name:'Java Bridge',     lang:'Java',    port:'9005', status:'Online',  health:91, color:'#f59e0b' },
+  { name:'PHP Connector',   lang:'PHP',     port:'9006', status:'Online',  health:88, color:'#818cf8' },
+  { name:'Ruby Automation', lang:'Ruby',    port:'9007', status:'Standby', health:74, color:'#ec4899' },
+];
+
+const InfraSection = () => {
+  const [tick, setTick] = useState(0);
+  useEffect(()=>{const id=setInterval(()=>setTick(v=>v+1),1000);return()=>clearInterval(id);},[]);
+  return (
+    <section className="relative px-4 sm:px-6 py-28">
+      <div style={{position:'absolute',inset:0,background:'linear-gradient(180deg,rgba(0,0,0,.75),rgba(12,2,2,.94))',backdropFilter:'blur(12px)'}}/>
+      <div className="relative max-w-6xl mx-auto">
+        <div className="text-center mb-16">
+          <SectionLabel>Live Infrastructure</SectionLabel>
+          <motion.h2 initial={{opacity:0,y:14}} whileInView={{opacity:1,y:0}} viewport={{once:true}}
+            style={{fontFamily:"'Courier New',monospace",fontWeight:900,fontSize:'clamp(22px,4vw,38px)',color:'#fff',margin:'0 0 10px'}}>
+            Real-Time <span style={{color:'#f87171'}}>Infrastructure</span>
+          </motion.h2>
+          <motion.p initial={{opacity:0}} whileInView={{opacity:1}} viewport={{once:true}}
+            style={{fontSize:13,color:'rgba(252,165,165,.38)',maxWidth:480,margin:'0 auto'}}>
+            Monitor microservice health, compliance, dan system uptime secara real-time.
+          </motion.p>
+        </div>
+
+        {/* KPI summary cards */}
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(200px,1fr))',gap:16,marginBottom:28}}>
+          {[
+            {label:'System Uptime',  value:'99.7%',    color:'#22c55e', icon:'◉', sub:'30-day average'},
+            {label:'Active Nodes',   value:'6 / 8',    color:'#3b82f6', icon:'⊞', sub:'Microservice Mesh'},
+            {label:'Avg Latency',    value:'12ms',     color:'#a78bfa', icon:'⚡', sub:'P95 response time'},
+            {label:'Compliance',     value:'ISO 27001', color:'#fb923c', icon:'✓', sub:'COBIT framework'},
+          ].map((card,i)=>(
+            <motion.div key={i} initial={{opacity:0,y:20}} whileInView={{opacity:1,y:0}} viewport={{once:true}} transition={{delay:i*.07}}
+              whileHover={{y:-4,scale:1.02}}
+              style={{padding:'18px 20px',borderRadius:16,background:'rgba(12,2,2,.88)',border:`1px solid ${card.color}22`,backdropFilter:'blur(8px)',position:'relative',overflow:'hidden'}}>
+              <div style={{position:'absolute',top:0,left:0,right:0,height:2,background:`linear-gradient(90deg,transparent,${card.color}80,transparent)`}}/>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+                <div>
+                  <p style={{fontFamily:"'Courier New',monospace",fontSize:9,color:'rgba(252,165,165,.38)',letterSpacing:2,marginBottom:6,textTransform:'uppercase'}}>{card.label}</p>
+                  <p style={{fontFamily:"'Courier New',monospace",fontWeight:900,fontSize:22,color:card.color,textShadow:`0 0 12px ${card.color}66`,margin:0}}>{card.value}</p>
+                </div>
+                <span style={{fontSize:22,color:`${card.color}44`}}>{card.icon}</span>
+              </div>
+              <p style={{fontFamily:"'Courier New',monospace",fontSize:9,color:'rgba(252,165,165,.22)',marginTop:8}}>{card.sub}</p>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Microservice node grid */}
+        <motion.div initial={{opacity:0,y:20}} whileInView={{opacity:1,y:0}} viewport={{once:true}}
+          style={{background:'rgba(8,1,1,.85)',border:'1px solid rgba(239,68,68,.1)',borderRadius:20,padding:28}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20,flexWrap:'wrap',gap:8}}>
+            <p style={{fontFamily:"'Courier New',monospace",fontSize:10,color:'#ef4444aa',letterSpacing:3,margin:0,textTransform:'uppercase'}}>
+              Microservice Mesh — {INFRA_NODES.length} Nodes
+            </p>
+            <div style={{display:'flex',alignItems:'center',gap:8}}>
+              <span style={{width:6,height:6,borderRadius:'50%',background:'#22c55e',boxShadow:'0 0 6px #22c55e',display:'inline-block',animation:'lp-pulse 2s ease-in-out infinite'}}/>
+              <span style={{fontFamily:"'Courier New',monospace",fontSize:9,color:'rgba(252,165,165,.4)',letterSpacing:2}}>LIVE · {tick}s</span>
+            </div>
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(155px,1fr))',gap:12}}>
+            {INFRA_NODES.map((node,i)=>(
+              <motion.div key={i} initial={{opacity:0,scale:.9}} whileInView={{opacity:1,scale:1}} viewport={{once:true}} transition={{delay:i*.04}}
+                whileHover={{scale:1.04}}
+                style={{padding:'14px',borderRadius:12,background:'rgba(4,0,0,.9)',border:`1px solid ${node.color}22`,position:'relative',overflow:'hidden'}}>
+                <div style={{position:'absolute',top:0,left:0,right:0,height:1,background:`linear-gradient(90deg,transparent,${node.color}50,transparent)`}}/>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
+                  <span style={{fontFamily:"'Courier New',monospace",fontSize:11,fontWeight:700,color:'rgba(255,255,255,.85)'}}>{node.name.split(' ')[0]}</span>
+                  <span style={{width:7,height:7,borderRadius:'50%',background:node.status==='Online'?'#22c55e':'#f59e0b',boxShadow:node.status==='Online'?'0 0 6px #22c55e':'0 0 6px #f59e0b',display:'inline-block'}}/>
+                </div>
+                <div style={{display:'flex',justifyContent:'space-between',marginBottom:8}}>
+                  <span style={{fontFamily:"'Courier New',monospace",fontSize:9,color:node.color,letterSpacing:1}}>{node.lang}</span>
+                  <span style={{fontFamily:"'Courier New',monospace",fontSize:9,color:'rgba(252,165,165,.4)'}}>:{node.port}</span>
+                </div>
+                <div style={{height:3,background:'rgba(255,255,255,.06)',borderRadius:2,overflow:'hidden'}}>
+                  <motion.div initial={{width:0}} whileInView={{width:`${node.health}%`}} viewport={{once:true}} transition={{duration:1,delay:i*.05}}
+                    style={{height:'100%',background:`linear-gradient(90deg,${node.color}50,${node.color})`,borderRadius:2}}/>
+                </div>
+                <p style={{fontFamily:"'Courier New',monospace",fontSize:9,color:'rgba(252,165,165,.25)',marginTop:4,textAlign:'right'}}>{node.health}%</p>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+};
 
 // ─────────────────────────────────────────────────────────
 // TECH STACK
@@ -605,47 +977,176 @@ const FeaturesSection = () => (
 // CTA SECTION
 // ─────────────────────────────────────────────────────────
 
-const CTASection = () => {
+const CTASection = ({ lang='default' }: { lang?: LangKey }) => {
   const navigate=useNavigate();
+  const tl=T[lang as LangKey];
   const ref=useRef<HTMLElement>(null);
   const {scrollYProgress}=useScroll({target:ref,offset:['start end','end start']});
   const y=useTransform(scrollYProgress,[0,1],[36,-36]);
+  const titleLines = tl.joinTitle.split('\n');
   return (
-    <section ref={ref} className="relative px-4 py-36 overflow-hidden">
-      <div style={{position:'absolute',inset:0,background:'radial-gradient(ellipse at 50% 50%,rgba(120,28,28,.22),rgba(0,0,0,.94))',backdropFilter:'blur(20px)'}}/>
-      {[260,370,480].map((sz,i)=>(
-        <div key={i} style={{position:'absolute',top:'50%',left:'50%',width:sz,height:sz,marginLeft:-sz/2,marginTop:-sz/2,borderRadius:'50%',border:`1px solid rgba(239,68,68,${.07-.015*i})`,animation:`${i%2===0?'lp-spin':'lp-rspin'} ${28+i*10}s linear infinite`,pointerEvents:'none'}}/>
+    <section ref={ref} className="relative px-4 overflow-hidden" style={{padding:'120px 24px'}}>
+      <div style={{position:'absolute',inset:0,background:'radial-gradient(ellipse at 50% 0%,rgba(139,28,28,.25) 0%,rgba(0,0,0,.97) 60%)'}}/>
+      <div style={{position:'absolute',inset:0,backgroundImage:'linear-gradient(rgba(239,68,68,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(239,68,68,.04) 1px,transparent 1px)',backgroundSize:'48px 48px'}}/>
+      {[300,440,560].map((sz,i)=>(
+        <div key={i} style={{position:'absolute',top:'50%',left:'50%',width:sz,height:sz,marginLeft:-sz/2,marginTop:-sz/2,borderRadius:'50%',border:`1px solid rgba(239,68,68,${.08-.02*i})`,animation:`${i%2===0?'lp-spin':'lp-rspin'} ${30+i*12}s linear infinite`,pointerEvents:'none'}}/>
+      ))}
+      {Array.from({length:6}).map((_,i)=>(
+        <div key={i} style={{position:'absolute',width:4,height:4,borderRadius:'50%',background:'rgba(239,68,68,.3)',top:`${20+i*12}%`,left:`${10+i*15}%`,animation:`lp-float ${3+i*.5}s ease-in-out infinite`,animationDelay:`${i*.4}s`}}/>
       ))}
       <motion.div style={{y}} className="relative max-w-3xl mx-auto text-center">
         <motion.div initial={{opacity:0,y:22}} whileInView={{opacity:1,y:0}} viewport={{once:true}}>
-          <SectionLabel>Join AODS</SectionLabel>
-          <h2 style={{fontFamily:"'Courier New',monospace",fontWeight:900,color:'#fff',fontSize:'clamp(26px,5vw,50px)',lineHeight:1.15,margin:'0 0 18px'}}>
-            Siap Memasuki<br/>
-            <span className="lp-shimmer-text">Holographic Metaverse?</span>
+          <SectionLabel>{tl.sectionJoin}</SectionLabel>
+          <h2 style={{fontFamily:"'Courier New',monospace",fontWeight:900,color:'#fff',fontSize:'clamp(28px,5.5vw,56px)',lineHeight:1.12,margin:'0 0 20px'}}>
+            {titleLines[0]}<br/>
+            <span className="lp-shimmer-text">{titleLines[1]}</span>
           </h2>
-          <p style={{color:'rgba(252,165,165,.52)',fontSize:'clamp(13px,1.3vw,16px)',lineHeight:1.85,maxWidth:500,margin:'0 auto 44px'}}>
-            Bergabunglah dengan AODS Neural Core — platform enterprise terdepan yang menggabungkan AI, blockchain, dan visualisasi 3D.
+          <p style={{color:'rgba(252,165,165,.5)',fontSize:'clamp(13px,1.3vw,16px)',lineHeight:1.85,maxWidth:520,margin:'0 auto 48px'}}>
+            {tl.joinSub}
           </p>
-          <div className="flex flex-col sm:flex-row gap-5 justify-center mb-14">
-            <Btn3D onClick={()=>navigate('/signup')} primary icon="◈">Create Account</Btn3D>
-            <Btn3D onClick={()=>navigate('/login')} icon="→">Sign In</Btn3D>
+          <div style={{display:'flex',flexWrap:'wrap',gap:20,justifyContent:'center',marginBottom:48}}>
+            <Btn3D onClick={()=>navigate('/signup')} primary icon="◈">{tl.createAccount}</Btn3D>
+            <Btn3D onClick={()=>navigate('/login')} icon="→">{tl.signIn}</Btn3D>
           </div>
-          <div style={{display:'flex',flexWrap:'wrap',gap:8,justifyContent:'center'}}>
-            {['Free tier available','MetaMask supported','ISO 27001','9 Languages','Open Source'].map((pill,i)=>(
+          <div style={{display:'flex',flexWrap:'wrap',gap:10,justifyContent:'center'}}>
+            {tl.pills.map((pill,i)=>(
               <motion.span key={i} initial={{opacity:0,scale:.8}} whileInView={{opacity:1,scale:1}} viewport={{once:true}} transition={{delay:.08*i}}
-                style={{fontFamily:"'Courier New',monospace",fontSize:10,color:'rgba(252,165,165,.5)',padding:'4px 13px',borderRadius:99,background:'rgba(239,68,68,.06)',border:'1px solid rgba(239,68,68,.13)',letterSpacing:1}}>
+                style={{fontFamily:"'Courier New',monospace",fontSize:10,color:'rgba(252,165,165,.5)',padding:'5px 14px',borderRadius:99,background:'rgba(239,68,68,.06)',border:'1px solid rgba(239,68,68,.13)',letterSpacing:1}}>
                 ✓ {pill}
               </motion.span>
             ))}
           </div>
         </motion.div>
       </motion.div>
-      <p style={{position:'absolute',bottom:20,left:0,right:0,textAlign:'center',fontFamily:"'Courier New',monospace",fontSize:10,color:'rgba(127,29,29,.4)',letterSpacing:2}}>
-        AODS · Ahmad Fashich Azzuhri Ramadhani · 2026
-      </p>
     </section>
   );
 };
+
+// ─────────────────────────────────────────────────────────
+// FOOTER
+// ─────────────────────────────────────────────────────────
+
+const Footer = ({ lang='default' }: { lang?: LangKey }) => {
+  const navigate = useNavigate();
+  const tl = T[lang as LangKey];
+  const isRTL = lang === 'ar';
+  const productLinks = [
+    { label: tl.footerLinks[0], path: '/#features' },
+    { label: tl.footerLinks[1], path: '/#blockchain' },
+    { label: tl.footerLinks[2], path: '/#ai' },
+    { label: tl.footerLinks[3], path: '/docs' },
+  ];
+  const legalLinks = [
+    { label: tl.footerLinks[4], path: '/privacy' },
+    { label: tl.footerLinks[5], path: '/terms' },
+  ];
+  return (
+    <footer style={{
+      position:'relative',
+      background:'linear-gradient(180deg,rgba(0,0,0,.95) 0%,#000 100%)',
+      borderTop:'1px solid rgba(239,68,68,.12)',
+      padding:'64px 24px 32px',
+      direction: isRTL ? 'rtl' : 'ltr',
+    }}>
+      <style>{`.footer-grid{display:grid;grid-template-columns:1fr auto auto;gap:48px;margin-bottom:48px;}@media(max-width:640px){.footer-grid{grid-template-columns:1fr;}}`}</style>
+      <div style={{position:'absolute',inset:0,backgroundImage:'radial-gradient(rgba(239,68,68,.04) 1px,transparent 1px)',backgroundSize:'24px 24px',pointerEvents:'none'}}/>
+      <div style={{maxWidth:1200,margin:'0 auto',position:'relative'}}>
+        <div className="footer-grid">
+          <div>
+            <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:16}}>
+              <div style={{width:36,height:36,borderRadius:10,background:'linear-gradient(135deg,#ef4444,#b91c1c)',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 0 20px #ef444440'}}>
+                <span style={{fontFamily:"'Courier New',monospace",fontWeight:900,fontSize:14,color:'#fff'}}>A</span>
+              </div>
+              <span style={{fontFamily:"'Courier New',monospace",fontWeight:900,fontSize:18,color:'#fff',letterSpacing:-1}}>AODS</span>
+            </div>
+            <p style={{fontSize:13,color:'rgba(252,165,165,.42)',lineHeight:1.8,maxWidth:280}}>{tl.footerTagline}</p>
+            <div style={{display:'flex',gap:12,marginTop:20}}>
+              {['GH','TW','DC'].map(soc=>(
+                <a key={soc} href="#"
+                  style={{width:34,height:34,borderRadius:9,background:'rgba(239,68,68,.06)',border:'1px solid rgba(239,68,68,.15)',display:'flex',alignItems:'center',justifyContent:'center',textDecoration:'none',color:'rgba(252,165,165,.5)',fontFamily:"'Courier New',monospace",fontSize:11,fontWeight:700}}>
+                  {soc}
+                </a>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p style={{fontFamily:"'Courier New',monospace",fontSize:10,color:'#ef4444',letterSpacing:3,marginBottom:16,textTransform:'uppercase'}}>Platform</p>
+            {productLinks.map(link=>(
+              <button key={link.label} onClick={()=>navigate(link.path)}
+                style={{display:'block',fontFamily:"'Courier New',monospace",fontSize:12,color:'rgba(252,165,165,.5)',background:'none',border:'none',cursor:'pointer',padding:'5px 0',letterSpacing:1,textAlign:isRTL?'right':'left'}}
+                onMouseEnter={e=>{(e.currentTarget).style.color='#f87171';}}
+                onMouseLeave={e=>{(e.currentTarget).style.color='rgba(252,165,165,.5)';}}>
+                {link.label}
+              </button>
+            ))}
+          </div>
+          <div>
+            <p style={{fontFamily:"'Courier New',monospace",fontSize:10,color:'#ef4444',letterSpacing:3,marginBottom:16,textTransform:'uppercase'}}>Legal</p>
+            {legalLinks.map(link=>(
+              <button key={link.label} onClick={()=>navigate(link.path)}
+                style={{display:'block',fontFamily:"'Courier New',monospace",fontSize:12,color:'rgba(252,165,165,.5)',background:'none',border:'none',cursor:'pointer',padding:'5px 0',letterSpacing:1,textAlign:isRTL?'right':'left'}}
+                onMouseEnter={e=>{(e.currentTarget).style.color='#f87171';}}
+                onMouseLeave={e=>{(e.currentTarget).style.color='rgba(252,165,165,.5)';}}>
+                {link.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div style={{height:1,background:'linear-gradient(90deg,transparent,rgba(239,68,68,.2),transparent)',marginBottom:24}}/>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:12}}>
+          <p style={{fontFamily:"'Courier New',monospace",fontSize:10,color:'rgba(127,29,29,.6)',letterSpacing:1}}>{tl.footerCopyright}</p>
+          <div style={{display:'flex',alignItems:'center',gap:8}}>
+            <span style={{width:5,height:5,borderRadius:'50%',background:'#22c55e',boxShadow:'0 0 6px #22c55e',display:'inline-block',animation:'lp-pulse 2s ease-in-out infinite'}}/>
+            <span style={{fontFamily:"'Courier New',monospace",fontSize:9,color:'rgba(34,197,94,.5)',letterSpacing:2}}>ALL SYSTEMS OPERATIONAL</span>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+};
+
+// ─────────────────────────────────────────────────────────
+// LANGUAGE MODAL
+// ─────────────────────────────────────────────────────────
+
+const LanguageModal = ({ current, onSelect, onClose }: {
+  current: LangKey; onSelect: (k: LangKey) => void; onClose: () => void;
+}) => (
+  <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}
+    className="fixed inset-0 z-[300] flex items-center justify-center p-4"
+    style={{background:'rgba(0,0,0,.88)',backdropFilter:'blur(12px)'}}
+    onClick={e=>e.target===e.currentTarget&&onClose()}>
+    <motion.div initial={{scale:.88,y:32,opacity:0}} animate={{scale:1,y:0,opacity:1}} exit={{scale:.88,y:32,opacity:0}}
+      transition={{type:'spring',stiffness:300,damping:28}}
+      style={{width:'100%',maxWidth:520,borderRadius:20,background:'linear-gradient(135deg,rgba(12,2,2,.98),rgba(4,0,0,1))',border:'1px solid rgba(239,68,68,.25)',boxShadow:'0 0 80px rgba(239,68,68,.1)',overflow:'hidden'}}>
+      <div style={{padding:'20px 24px 16px',borderBottom:'1px solid rgba(239,68,68,.1)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+        <div>
+          <p style={{fontFamily:"'Courier New',monospace",fontSize:9,color:'#ef4444',letterSpacing:3,textTransform:'uppercase',marginBottom:4}}>Language / Bahasa</p>
+          <h3 style={{fontFamily:"'Courier New',monospace",fontWeight:900,fontSize:16,color:'#fff',margin:0}}>{T[current].langTitle}</h3>
+        </div>
+        <motion.button onClick={onClose} whileHover={{scale:1.1,rotate:90}} whileTap={{scale:.9}}
+          style={{width:34,height:34,borderRadius:'50%',background:'rgba(239,68,68,.1)',border:'1px solid rgba(239,68,68,.2)',color:'#f87171',fontSize:14,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700}}>✕</motion.button>
+      </div>
+      <div style={{padding:20,display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10,maxHeight:'70vh',overflowY:'auto'}}>
+        {LANGUAGES.map(l=>(
+          <motion.button key={l.key} onClick={()=>{onSelect(l.key);onClose();}}
+            whileHover={{scale:1.04}} whileTap={{scale:.96}}
+            style={{
+              padding:'12px 8px',borderRadius:12,
+              background:current===l.key?'rgba(239,68,68,.15)':'rgba(255,255,255,.03)',
+              border:`1px solid ${current===l.key?'rgba(239,68,68,.5)':'rgba(255,255,255,.07)'}`,
+              cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center',gap:6,
+            }}>
+            <span style={{fontSize:22}}>{l.flag}</span>
+            <span style={{fontFamily:"'Courier New',monospace",fontWeight:700,fontSize:11,color:current===l.key?'#f87171':'rgba(255,255,255,.75)',letterSpacing:.5}}>{l.native}</span>
+            <span style={{fontFamily:"'Courier New',monospace",fontSize:9,color:'rgba(252,165,165,.35)',letterSpacing:1}}>{l.label}</span>
+            {current===l.key&&<div style={{width:20,height:2,background:'#ef4444',borderRadius:1}}/>}
+          </motion.button>
+        ))}
+      </div>
+    </motion.div>
+  </motion.div>
+);
 
 // ─────────────────────────────────────────────────────────
 // MAIN EXPORT
@@ -654,6 +1155,8 @@ const CTASection = () => {
 export default function LandingPage() {
   const [showContent, setShowContent] = useState(true);
   const [showTrailer, setShowTrailer] = useState(false);
+  const [showLang, setShowLang] = useState(false);
+  const [lang, setLang] = useState<LangKey>('default');
   const [scrollY, setScrollY] = useState(0);
 
   useEffect(()=>{
@@ -693,6 +1196,14 @@ export default function LandingPage() {
         <div style={{position:'absolute',inset:0,background:'radial-gradient(ellipse at center,transparent 25%,rgba(0,0,0,.5) 100%)'}}/>
       </div>
 
+      {/* Language toggle */}
+      <motion.button whileHover={{scale:1.12}} whileTap={{scale:.88}} onClick={()=>setShowLang(v=>!v)}
+        style={{position:'fixed',bottom:76,right:24,zIndex:50,width:44,height:44,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(0,0,0,.82)',border:`1px solid ${showLang?'rgba(239,68,68,.55)':'rgba(100,20,20,.35)'}`,backdropFilter:'blur(8px)',cursor:'pointer'}}>
+        <svg style={{width:18,height:18,color:showLang?'#f87171':'rgba(252,165,165,.5)'}} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253M3 12a8.954 8.954 0 01.284-2.253"/>
+        </svg>
+      </motion.button>
+
       {/* Eye toggle */}
       <motion.button whileHover={{scale:1.12}} whileTap={{scale:.88}} onClick={()=>setShowContent(v=>!v)}
         style={{position:'fixed',bottom:24,right:24,zIndex:50,width:44,height:44,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(0,0,0,.82)',border:`1px solid ${showContent?'rgba(239,68,68,.55)':'rgba(100,20,20,.35)'}`,backdropFilter:'blur(8px)',cursor:'pointer'}}>
@@ -702,18 +1213,20 @@ export default function LandingPage() {
       </motion.button>
 
       <AnimatePresence>{showTrailer&&<TrailerModal onClose={()=>setShowTrailer(false)}/>}</AnimatePresence>
+      <AnimatePresence>{showLang&&<LanguageModal current={lang} onSelect={setLang} onClose={()=>setShowLang(false)}/>}</AnimatePresence>
 
       <AnimatePresence>
         {showContent&&(
           <motion.div key="content" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:.5}} style={{position:'relative',zIndex:10}}>
-            <HeroSection onTrailer={()=>setShowTrailer(true)} scrollY={scrollY}/>
+            <HeroSection onTrailer={()=>setShowTrailer(true)} scrollY={scrollY} lang={lang}/>
             <Ticker/>
             <StatsSection/>
-            <LiveSystemStatus/>
+            <InfraSection/>
             <TechStackSection/>
             <BlockchainSection/>
             <FeaturesSection/>
-            <CTASection/>
+            <CTASection lang={lang}/>
+            <Footer lang={lang}/>
           </motion.div>
         )}
       </AnimatePresence>
